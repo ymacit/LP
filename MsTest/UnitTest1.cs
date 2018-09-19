@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Simplex.Problem;
 using Simplex.Enums;
 using Simplex.Analysis;
+using Simplex.Helper;
 
 namespace MsTest
 {
@@ -9,9 +10,20 @@ namespace MsTest
     public class UnitTest1
     {
         [TestMethod]
+        public void MatrixDeterminant_Test()
+        {
+            double[,] tmp_array = new double[2, 2] { { 4, 8 }, { 7, -2 } };
+            Matrix tmp_matrix = new Matrix(tmp_array);
+            double det = tmp_matrix.Det();
+            Matrix inv = tmp_matrix.Invert();
+            Matrix tpose = Matrix.Transpose(tmp_matrix);
+            Assert.IsNull(tmp_matrix, "success");
+        }
+
+        [TestMethod]
         public void SimplexModel_Copy_Test()
         {
-            SimplexModel simplex = CreateSimplexModel2();
+            SimplexModel simplex = CreateSimplexModel3();
             SimplexModel simplex2 = simplex.DeepCopy();
             simplex2.GoalType = ObjectiveType.Maximum;
             simplex2.Subjects[0].Terms[0].Vector = "X1 Copy";
@@ -38,8 +50,6 @@ namespace MsTest
             StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
             phasemodel.CreatePhaseOneObjective();
             phasemodel.PhaseOnePrintMatrix();
-            Matrix tmp_matrix = phasemodel.GetFullMatrix();
-            System.Diagnostics.Debug.WriteLine( tmp_matrix.ToString());
             Assert.IsNull(standartModel, "success");
         }
 

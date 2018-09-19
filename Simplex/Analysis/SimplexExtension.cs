@@ -295,27 +295,27 @@ namespace Simplex.Analysis
             model.PhaseObjectiveFunction.Terms.Sort(tc);
         }
 
-        public static Matrix GetFullMatrix(this StandartSimplexModel model)
-        {
+        //public static Matrix GetFullMatrix(this StandartSimplexModel model)
+        //{
 
-            int rowCount = model.Subjects.Count + 1;
-            int columnCount = model.PhaseObjectiveFunction.Terms.Count;
-            double[,] matrixArray = new double[rowCount, columnCount];
+        //    int rowCount = model.Subjects.Count + 1;
+        //    int columnCount = model.PhaseObjectiveFunction.Terms.Count;
+        //    double[,] matrixArray = new double[rowCount, columnCount];
 
-            for (int j = 0; j < columnCount; j++)
-            {
-                matrixArray[0,j]=model.PhaseObjectiveFunction.Terms[j].Factor;
-            }
-            for (int i = 1; i < rowCount; i++)
-            {
-                for (int j = 0; j < columnCount; j++)
-                {
-                    matrixArray[i, j] = model.Subjects[i - 1].Terms[j].Factor;
-                }
-            }
+        //    for (int j = 0; j < columnCount; j++)
+        //    {
+        //        matrixArray[0,j]=model.PhaseObjectiveFunction.Terms[j].Factor;
+        //    }
+        //    for (int i = 1; i < rowCount; i++)
+        //    {
+        //        for (int j = 0; j < columnCount; j++)
+        //        {
+        //            matrixArray[i, j] = model.Subjects[i - 1].Terms[j].Factor;
+        //        }
+        //    }
 
-            return new Matrix(matrixArray);
-        }
+        //    return new Matrix(matrixArray);
+        //}
 
         public static void TruncateArtificialVariables(this StandartSimplexModel model)
         {

@@ -5,6 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Helper\DoubleUtil.cs" />
+    <Compile Remove="Helper\DoubleUtil_ms.cs" />
+    <Compile Remove="Helper\MatrixHelper.cs" />
+    <Compile Remove="Helper\MatrixUtil.cs" />
+    <Compile Remove="Helper\MatrixUtil_ms.cs" />
+    <Compile Remove="Helper\Matrix_ms.cs" />
     <Compile Remove="Problem\ObjectiveFunction.cs" />
   </ItemGroup>
 
