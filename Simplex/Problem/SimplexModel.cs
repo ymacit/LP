@@ -35,10 +35,5 @@ namespace Simplex.Problem
             get { return m_subjects; }
             set { m_subjects = value; }
         }
-
-        public SimplexModel ShallowCopy()
-        {
-            return (SimplexModel) this.MemberwiseClone();
-        }
     }
 }

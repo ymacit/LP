@@ -37,9 +37,9 @@ using Simplex.Enums;
 
 namespace Simplex.Analysis
 {
-    public class Solver
+    public class RegularSolver
     {
-
+        private const double m_epsilon = 0.0001;
         public Solution Solve(StandartSimplexModel simplexModel)
         {
 
@@ -60,7 +60,7 @@ namespace Simplex.Analysis
             Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
             simplexModel.ConvertStandardModel();
             simplexModel.PrintMatrix();
-            simplexModel.CreatePhaseOneObjective();
+            simplexModel.CreatePhaseOneObjective(true);
             simplexModel.CreateMatrixSet();
             //1) Solve the matrix for phase I 
             /*
@@ -76,7 +76,7 @@ namespace Simplex.Analysis
             //Solving the Phase I LP will result in one of the following three cases:
             //I.Case : If w = 0 
             //TODO test //tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0) - 1, 0] = 0;
-            if (tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0)-1, 0] == 0)
+            if (tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0)-1, 0] <= m_epsilon)
             {
                 //transfer the phaseoneobjective function factors
                 simplexModel.TruncateArtificialVariables();
@@ -168,7 +168,7 @@ namespace Simplex.Analysis
                 //1) Select entering value for original variables in objective function. if maximize, select min value (in negative), if minimize select max value (in positive) for original variables. İf selection is not exist, decide for solution state.
                 // Maksimizasyonda en negatif değere sahip değişken,
                 // Minimizasyonda ise en pozitif değere sahip değişken seçilir.
-                tmp_PivotColIndex = FindEnteringValueIndex(objective, types, InclusiveTypeBits, true);
+                tmp_PivotColIndex = FindEnteringValueIndex(objective, types, InclusiveTypeBits);
                 //Check the selected value. If value is zero, nothing to do.
                 if (tmp_PivotColIndex == -1)
                 {
@@ -186,7 +186,7 @@ namespace Simplex.Analysis
                 }
                 //3)Select the  minimum ratio for leaving variable
                 //Anahtar sütunu bulduktan sonra(X2 Sütunu), anahtar sütunda bulunan her bir hücre içindeki değeri Çözüm sütunundaki değerlere oranlarız ve en küçük negatif olmayan değeri belirleriz. Bu işlem hem maksimizasyon hem de minimizasyon modellerinde aynı şekilde yapılır.
-                tmp_PivotRowIndex = FindLeavingValueIndex(RightHandValues, 1, false);
+                tmp_PivotRowIndex = FindLeavingValueIndex(RightHandValues, 1);
                 if(tmp_PivotRowIndex==-1)
                 {
                     tmp_solution.Quality = Enums.SolutionQuality.Unbounded;
@@ -272,7 +272,7 @@ namespace Simplex.Analysis
             System.Diagnostics.Debug.WriteLine("*********************************");
         }
 
-        private int FindEnteringValueIndex(double[] matrix, VariableType[] types, VariableType InclusiveType, bool max)
+        private int FindEnteringValueIndex(double[] matrix, VariableType[] types, VariableType InclusiveType)
         {
             int tmp_index = -1; 
             double tmp_value = 0;
@@ -280,7 +280,7 @@ namespace Simplex.Analysis
             {
                 if (matrix[i] > tmp_value && (types[i] == (types[i] & InclusiveType)))
                 {
-                    tmp_value= matrix[i];
+                    tmp_value = matrix[i];
                     tmp_index = i;
                 }
             }
@@ -288,7 +288,7 @@ namespace Simplex.Analysis
             return tmp_index;
         }
 
-        private int FindLeavingValueIndex(double[,] matrix, int column, bool max)
+        private int FindLeavingValueIndex(double[,] matrix, int column)
         {
             int tmp_index = -1;
             double tmp_value = double.MaxValue;

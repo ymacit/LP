@@ -63,10 +63,7 @@ namespace Simplex.Helper
             rows = 1;
             cols = matrix.Length;
             mat = new double[rows * cols];
-            for (int i = 0; i < cols; i++)
-            {
-                mat[1 * cols + i] = matrix[i];
-            }
+            matrix.CopyTo(mat, 0);
         }
 
         public Matrix(double[,] matrix)         // Matrix Class constructor

@@ -13,6 +13,7 @@ using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using Simplex.Problem;
 using Simplex.Enums;
+using Simplex.Helper;
 
 namespace Simplex.Analysis
 {
@@ -67,7 +68,8 @@ namespace Simplex.Analysis
             {
                 term.Factor *= -1;
             }
-            model.ObjectiveFunction.Terms.Insert(0, new Term() { Factor = 1, VarType = VariableType.Balance, Vector = "Z", Index = 0 });
+            model.ObjectiveFunction.RightHandValue =0;
+            //model.ObjectiveFunction.Terms.Insert(0, new Term() { Factor = 1, VarType = VariableType.Balance, Vector = "Z", Index = 0 });
 
 
             //3) find the varibles count in model
@@ -225,7 +227,7 @@ namespace Simplex.Analysis
             }
         }
 
-        public static void CreatePhaseOneObjective(this StandartSimplexModel model)
+        public static void CreatePhaseOneObjective(this StandartSimplexModel model, bool regularSimplex)
         {
             //Steps
             //#.Modify the constraints so that the RHS of each constraint is nonnegative (This requires that each constraint with a negative RHS be multiplied by - 1.Remember that if you multiply an inequality by any negative number, the direction of the inequality is reversed!). After modification, identify each constraint as a ≤, ≥ or = constraint.
@@ -245,38 +247,44 @@ namespace Simplex.Analysis
                 model.PhaseObjectiveFunction.Terms.Add(new Term() { Factor = 1, VarType = item.VarType, Vector = item.Vector });
             }
 
-            //2) change signt the factor value of term in new objective fonction terms and add positive balance variable ("w")
+            ////2) change signt the factor value of term in new objective fonction terms and add positive balance variable ("w")
             foreach (Term term in model.PhaseObjectiveFunction.Terms)
             {
                 term.Factor *= -1;
             }
             //3) add balance type variable ("w") to the new objective function
-            model.PhaseObjectiveFunction.Terms.Insert(0, new Term() { Factor = 1, VarType = VariableType.Balance, Vector = "w", Index = 0 });
+            //model.PhaseObjectiveFunction.Terms.Insert(0, new Term() { Factor = 1, VarType = VariableType.Balance, Vector = "w", Index = 0 });
+
+            //Let us define new objective function as negative (-w)
+            model.PhaseObjectiveFunction.RightHandValue = 0;
+
             //4) find all artificial variable that has factor value is equal to 0 in cosntarint terms and put the artificial variable value in the new objective function;
             //   all artificial variables must be eliminated from row 0 before we can solve Phase I
             Term tmp_term = null;
-            bool tmp_processed = false;
             foreach (Subject constraint in model.Subjects)
             {
                 if (constraint.Terms.Any(term => term.VarType == VariableType.Artificial && term.Factor == 1))
                 {
                     //Find 
-                    List<Term> tmp_willaddedterms= constraint.Terms.Where(term => term.Factor != 0).ToList();
-                    foreach (Term item in tmp_willaddedterms)
+                    List<Term> tmp_willaddedterms = constraint.Terms.Where(term => term.Factor != 0).ToList();
+                    if (regularSimplex)
                     {
-                        tmp_term = null;
-                        tmp_term = model.PhaseObjectiveFunction.Terms.Find(term => term.Vector.Equals(item.Vector));
-                        if (tmp_term != null)
-                            tmp_term.Factor += item.Factor;
-                        else
-                            model.PhaseObjectiveFunction.Terms.Add(new Term() { Factor = item.Factor, VarType = item.VarType, Vector = item.Vector });
-
-                        tmp_processed = true;
+                        foreach (Term item in tmp_willaddedterms)
+                        {
+                            tmp_term = null;
+                            tmp_term = model.PhaseObjectiveFunction.Terms.Find(term => term.Vector.Equals(item.Vector));
+                            if (tmp_term != null)
+                                tmp_term.Factor += item.Factor;
+                            else
+                                model.PhaseObjectiveFunction.Terms.Add(new Term() { Factor = item.Factor, VarType = item.VarType, Vector = item.Vector });
+                        }
                     }
-                    if(tmp_processed)
+                    if (tmp_willaddedterms.Count > 0)
                     {
-                        model.PhaseObjectiveFunction.RightHandValue += constraint.RightHandValue;
-                        tmp_processed = false;    
+                        if(regularSimplex)
+                            model.PhaseObjectiveFunction.RightHandValue += constraint.RightHandValue;
+                        else
+                            model.PhaseObjectiveFunction.RightHandValue -= constraint.RightHandValue;
                     }
                 }
             }
@@ -295,6 +303,7 @@ namespace Simplex.Analysis
             model.PhaseObjectiveFunction.Terms.Sort(tc);
         }
 
+       
         //public static Matrix GetFullMatrix(this StandartSimplexModel model)
         //{
 
@@ -395,12 +404,15 @@ namespace Simplex.Analysis
             double[,] tmp_constarintMatrix = new double[rowCount, columnCount];
             double[,] tmp_RightHandMatrix = new double[rowCount+1, 2]; // +1 is for objective function, second dimension is for ratio 
 
-            for (int j = 0; j < columnCount; j++)
+            if (model.IsTwoPhase)
             {
-                tmp_phaseObjectiveMatrix[j] = model.PhaseObjectiveFunction.Terms[j].Factor;
-                tmp_types[j] = model.ObjectiveFunction.Terms[j].VarType;
+                for (int j = 0; j < columnCount; j++)
+                {
+                    tmp_phaseObjectiveMatrix[j] = model.PhaseObjectiveFunction.Terms[j].Factor;
+                    tmp_types[j] = model.ObjectiveFunction.Terms[j].VarType;
+                }
+                tmp_RightHandMatrix[rowCount, 0] = model.PhaseObjectiveFunction.RightHandValue;
             }
-            tmp_RightHandMatrix[rowCount, 0] = model.PhaseObjectiveFunction.RightHandValue;
 
             for (int j = 0; j < columnCount; j++)
             {
@@ -427,6 +439,115 @@ namespace Simplex.Analysis
             //model.RightHandMatrix = new Matrix(tmp_RightHandMatrix);
             //model.ConstarintMatrix = new Matrix(tmp_constarintMatrix);
 
+        }
+        public static void GenerateBasisMatrices(this RevisedSimplexModel model)
+        {
+
+            /*
+             *1-amaç fonksiyonda sadece temel değişkenler kalacak şekilde daralt
+             *  -eğer iki aşamalı ise amaç fonksiyonu sadece yapay değişkenler cinsinden yazılır  ve sadece onlar temel değişkendir.
+             *2- 
+             * 
+             * 
+             * 
+             * 
+             * 
+             */
+            int rowCount = model.Subjects.Count;
+            int columnCount = model.ObjectiveFunction.Terms.Count;
+            int tmp_artificalCount = model.PhaseObjectiveFunction.Terms.Where(term => term.VarType == VariableType.Artificial).Count<Term>();
+
+            VariableType[] tmp_types = new VariableType[columnCount];
+            Matrix tmp_PhaseOneBasisMatrix = null;
+            Matrix tmp_PhaseOneBasisRightHandMatrix = null;
+            Matrix tmp_PhaseOneBasisObjectiveMatrix = null;
+            Matrix tmp_PhaseOneNonBasisMatrix = null;
+
+            Matrix tmp_BasisMatrix = new Matrix(tmp_artificalCount, 1); ;
+            Matrix tmp_NonBasisMatrix = new Matrix(model.ObjectiveFunction.Terms.Count, model.Subjects.Count); ;
+            Matrix tmp_BasisRightHandMatrix = new Matrix(model.Subjects.Count,2);
+            Matrix tmp_BasisObjectiveMatrix = new Matrix(model.ObjectiveFunction.Terms.Count- tmp_artificalCount, 1);
+
+            for (int j = 0; j < model.ObjectiveFunction.Terms.Count; j++)
+            {
+                if(model.ObjectiveFunction.Terms[j].VarType!= VariableType.Artificial)
+                    tmp_BasisObjectiveMatrix[j, 0] = model.ObjectiveFunction.Terms[j].Factor;
+            }
+
+            for (int i = 0; i < rowCount; i++)
+            {
+                for (int j = 0; j < columnCount; j++)
+                {
+                    tmp_NonBasisMatrix[i, j] = model.Subjects[i].Terms[j].Factor;
+                }
+                tmp_BasisRightHandMatrix[i, 0] = model.Subjects[i].RightHandValue;
+            }
+
+
+            if (model.IsTwoPhase)
+            {
+                int tmp_rowIndex = 0;
+                int tmp_colIndex = 0;
+
+                tmp_PhaseOneBasisObjectiveMatrix = new Matrix(tmp_artificalCount, 1);
+                tmp_PhaseOneBasisRightHandMatrix = new Matrix(tmp_artificalCount+1, 1);
+                tmp_PhaseOneBasisMatrix = new Matrix(tmp_artificalCount, tmp_artificalCount);
+                tmp_PhaseOneNonBasisMatrix = new Matrix(tmp_artificalCount, model.ObjectiveFunction.Terms.Count);
+
+
+                for (int j = 0; j < model.PhaseObjectiveFunction.Terms.Count; j++)
+                {
+                    if (model.PhaseObjectiveFunction.Terms[j].VarType == VariableType.Artificial)
+                    {
+                        tmp_PhaseOneBasisObjectiveMatrix[tmp_rowIndex, 0] = model.PhaseObjectiveFunction.Terms[j].Factor;
+                        tmp_rowIndex++;
+                    }
+                    //tmp_types[j] = model.ObjectiveFunction.Terms[j].VarType;
+                }
+                tmp_PhaseOneBasisRightHandMatrix[tmp_rowIndex, 0] = model.PhaseObjectiveFunction.RightHandValue;
+
+                List<Term> tmp_SubjectArtificalTerms = null;
+
+                //reset temrory row index
+                tmp_rowIndex = 0;
+                for (int i = 0; i < rowCount; i++)
+                {
+                    //reset temrory column index
+                    tmp_colIndex = 0;
+                    //get list of artificial term from current(i) subject.
+                    tmp_SubjectArtificalTerms = model.Subjects[i].Terms.Where(term => term.VarType == VariableType.Artificial).ToList();
+                    //we assume this subject row does not contain member of unit matrix artificial term
+                    if (tmp_SubjectArtificalTerms.Any(term => term.VarType == VariableType.Artificial && term.Factor == 1))
+                    {
+                        for (int j = 0; j < model.Subjects[0].Terms.Count; j++)
+                        {
+                            //we add absolutely column element to the nonbasis matrix.
+                            tmp_PhaseOneNonBasisMatrix[tmp_rowIndex, j] = model.Subjects[i].Terms[j].Factor;
+                            //we add selectively column element to the basis matrix .
+                            if (model.Subjects[i].Terms[j].VarType == VariableType.Artificial)
+                            {
+                                tmp_PhaseOneBasisMatrix[tmp_rowIndex, tmp_colIndex] = tmp_PhaseOneNonBasisMatrix[tmp_rowIndex, j];
+                                tmp_colIndex++;
+                            }
+                        }
+                        tmp_PhaseOneBasisRightHandMatrix[tmp_rowIndex, 0] = model.Subjects[i].RightHandValue;
+                        tmp_rowIndex++;
+                    }
+                }
+                
+            }
+
+
+            model.PhaseOneBasisMatrix = tmp_PhaseOneBasisMatrix;
+            model.PhaseOneBasisObjectiveMatrix = tmp_PhaseOneBasisObjectiveMatrix;
+            model.PhaseOneNonBasisMatrix = tmp_PhaseOneNonBasisMatrix;
+            model.PhaseOneBasisRightHandMatrix = tmp_PhaseOneBasisRightHandMatrix;
+
+            model.BasisMatrix = tmp_BasisMatrix;
+            model.BasisObjectiveMatrix = tmp_BasisObjectiveMatrix;
+            model.BasisRightHandMatrix = tmp_BasisRightHandMatrix;
+
+            model.VarTypes = tmp_types;
         }
     }
 
