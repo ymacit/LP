@@ -84,6 +84,15 @@ namespace Simplex.Analysis
                 }
             }
 
+            ////3.X) if one of term contains of only one cosntarint that ise basic varibale, let us find it
+            //foreach (KeyValuePair<string, Term> item in m_VectorList)
+            //{
+            //    List<Subject> tmp_list = model.Subjects.Where(subject => subject.Terms.Any(term => term.Vector.Equals(item.Key))).ToList();
+            //    if (tmp_list.Count == 1 && tmp_list[0].Equality== EquailtyType.Equals)
+            //        item.Value.isBasic = true;
+            //    //(term => term.VarType== VariableType.Artificial).ToList();
+            //}
+
             //3.2) Check and collect vector label for objective funtion
             foreach (Term term in model.ObjectiveFunction.Terms)
             {
@@ -303,7 +312,7 @@ namespace Simplex.Analysis
             model.PhaseObjectiveFunction.Terms.Sort(tc);
         }
 
-       
+
         //public static Matrix GetFullMatrix(this StandartSimplexModel model)
         //{
 
@@ -326,46 +335,166 @@ namespace Simplex.Analysis
         //    return new Matrix(matrixArray);
         //}
 
-        public static void TruncateArtificialVariables(this StandartSimplexModel model)
+        public static void TruncatePhaseResult(this StandartSimplexModel model, Solution solution)
         {
-            int tmp_artificialCount = 0;
-            //count the artificial variables
-            for (int i = 0; i < model.VarTypes.Length; i++)
+            //transfer the phaseoneobjective function factors
+            List<int> tmp_RemoveArtficialIndex = new List<int>();
+            List<int> tmp_RemoveOtherIndex = new List<int>();
+            List<int> tmp_totalRemoveIndex = new List<int>();
+            bool tmp_retainArtficialFound = false; //if retain and remove count are eqauls as aritmetich operation
+
+            for (int i = 0; i < model.PhaseOneObjectiveMatrix.Length; i++)
             {
                 if (model.VarTypes[i] == VariableType.Artificial)
-                    tmp_artificialCount++;
+                {
+                    if (model.PhaseOneObjectiveMatrix[i] < 0)
+                        tmp_RemoveArtficialIndex.Add(i);
+                    else
+                        tmp_retainArtficialFound = true;
+                }
+                else
+                {
+                    if (model.PhaseOneObjectiveMatrix[i] < 0)
+                        tmp_RemoveOtherIndex.Add(i);
+                }
             }
 
+            //II.Case : If w = 0, and no artificial variables are in the optimal Phase I basis:
+            //  i.Drop all columns in the optimal Phase I tableau that correspond to the artificial variables.Drop Phase I row 0.
+            //  ii.Combine the original objective function with the constraints from the optimal Phase I tableau(Phase II LP).If original objective function coefficients of BVs are nonzero row operations are done.
+            //  iii.Solve Phase II LP using the simplex method.The optimal solution to the Phase II LP is the optimal solution to the original LP.
+            if (!tmp_retainArtficialFound)
+            {
+                tmp_totalRemoveIndex=tmp_RemoveArtficialIndex;
+            }
+            //III.Case : If w = 0, and at least one artificial variable is in the optimal Phase I basis:
+            //  i.Drop all columns in the optimal Phase I tableau that correspond to the nonbasic artificial variables and any variable from the original problem that has a negative coefficient in row 0 of the optimal Phase I tableau. Drop Phase I row 0.
+            //  ii.Combine the original objective function with the constraints from the optimal Phase I tableau(Phase II LP).If original objective function coefficients of BVs are nonzero row operations are done.
+            //  iii.Solve Phase II LP using the simplex method.The optimal solution to the Phase II LP is the optimal solution to the original LP.
+            else
+            {
+                //merge and sort removed artificial and removed other variables 
+                tmp_totalRemoveIndex.AddRange(tmp_RemoveArtficialIndex);
+                tmp_totalRemoveIndex.AddRange(tmp_RemoveOtherIndex);
+            }
+
+            tmp_totalRemoveIndex.Sort();
+            TruncatePhaseColumns (model, tmp_totalRemoveIndex);
+
+        }
+        //public static void TruncateAllArtificialVariables(this StandartSimplexModel model, List<int> removeList)
+        //{
+        //    //declare new matrix for replace Phase I result 
+        //    int tmp_removeCount = removeList.Count;
+        //    double[] tmp_objectiveMatrix = new double[model.ObjectiveMatrix.Length - tmp_removeCount];
+        //    VariableType[] tmp_types = new VariableType[model.VarTypes.Length- tmp_removeCount];
+        //    double[,] tmp_constarintMatrix = new double[model.ConstarintMatrix.GetLength(0), model.ConstarintMatrix.GetLength(1)- tmp_removeCount];
+
+        //    int tmp_newIndex = 0;
+        //    for (int i = 0; i < model.PhaseOneObjectiveMatrix.Length; i++)
+        //    {
+        //        if(model.VarTypes[i] != VariableType.Artificial)
+        //        {
+        //            tmp_types[tmp_newIndex] = model.VarTypes[i];
+        //            tmp_objectiveMatrix[tmp_newIndex] = model.ObjectiveMatrix[i];
+        //            for (int j=0; j< model.ConstarintMatrix.GetLength(0); j++)
+        //            {
+        //                tmp_constarintMatrix[j, tmp_newIndex] = Math.Round( model.ConstarintMatrix[j,i],5);
+        //            }
+        //            tmp_newIndex++;
+        //        }
+        //    }
+
+        //    //Update the objective function original variable with cosntraint value;
+        //    double[] tmp_objectiveMatrixUpdated = new double[tmp_objectiveMatrix.Length];
+        //    int tmp_ObjectiveLeftValueIndex = model.RightHandMatrix.GetLength(0)-1;
+        //    tmp_objectiveMatrix.CopyTo(tmp_objectiveMatrixUpdated, 0);
+        //    VariableType tmp_inclusive = (VariableType.Original | VariableType.Slack | VariableType.Excess);
+        //    double tmp_pivotValue = 0;
+        //    for (int i = 0; i < tmp_objectiveMatrix.Length; i++)
+        //    {
+        //        //is variable inclusion group
+        //        if (tmp_objectiveMatrix[i]!=0 && tmp_types[i] == (tmp_types[i] & tmp_inclusive) )
+        //        {
+        //            tmp_pivotValue = tmp_objectiveMatrix[i];
+        //            //Find the related cosntraint row
+        //            for (int j = 0; j < tmp_constarintMatrix.GetLength(0); j++)
+        //            {
+        //                //pivot cell must be addresset by unit matrix 
+        //                if (tmp_constarintMatrix[j, i] != 1)
+        //                    continue;
+
+        //                //5)Calculate new objective Row (Rn') by multiple contraint factor.RO'=RO-xRn'
+        //                for (int k = 0; k < tmp_objectiveMatrix.Length; k++)
+        //                {
+        //                    tmp_objectiveMatrixUpdated[k] = Math.Round(tmp_objectiveMatrixUpdated[k] - tmp_pivotValue * tmp_constarintMatrix[j, k],5);
+        //                }
+        //                //in addition set the left value 
+        //                model.RightHandMatrix[tmp_ObjectiveLeftValueIndex, 0] = Math.Round(model.RightHandMatrix[tmp_ObjectiveLeftValueIndex, 0] - tmp_pivotValue * model.RightHandMatrix[j, 0],5);
+        //                model.RightHandMatrix[tmp_ObjectiveLeftValueIndex, 1] = 0;
+        //            }
+        //        }
+        //    }
+
+        //    model.VarTypes = tmp_types;
+        //    model.ObjectiveMatrix = tmp_objectiveMatrixUpdated;
+        //    model.ConstarintMatrix = tmp_constarintMatrix;
+
+        //}
+
+        private static void TruncatePhaseColumns(StandartSimplexModel model, List<int> removeList)
+        {
             //declare new matrix for replace Phase I result 
-            double[] tmp_objectiveMatrix = new double[model.ObjectiveMatrix.Length - tmp_artificialCount];
-            VariableType[] tmp_types = new VariableType[model.VarTypes.Length-tmp_artificialCount];
-            double[,] tmp_constarintMatrix = new double[model.ConstarintMatrix.GetLength(0), model.ConstarintMatrix.GetLength(1)-tmp_artificialCount];
+            int tmp_removeCount = removeList.Count;
+            int[] tmp_basic = new int[model.Basics.Length - tmp_removeCount];
+            double[] tmp_objectiveMatrix = new double[model.ObjectiveMatrix.Length - tmp_removeCount];
+            VariableType[] tmp_types = new VariableType[model.VarTypes.Length - tmp_removeCount];
+            double[,] tmp_constarintMatrix = new double[model.ConstarintMatrix.GetLength(0), model.ConstarintMatrix.GetLength(1) - tmp_removeCount];
+
+            Dictionary<Term, Subject> tmp_RemovePairList = new Dictionary<Term, Subject>();
 
             int tmp_newIndex = 0;
             for (int i = 0; i < model.PhaseOneObjectiveMatrix.Length; i++)
             {
-                if(model.VarTypes[i] != VariableType.Artificial)
+                if (removeList.Contains(i))
                 {
-                    tmp_types[tmp_newIndex] = model.VarTypes[i];
-                    tmp_objectiveMatrix[tmp_newIndex] = model.ObjectiveMatrix[i];
-                    for (int j=0; j< model.ConstarintMatrix.GetLength(0); j++)
+                    tmp_RemovePairList.Add(model.ObjectiveFunction.Terms[i], model.ObjectiveFunction);
+                    for (int j = 0; j < model.ConstarintMatrix.GetLength(0); j++)
                     {
-                        tmp_constarintMatrix[j, tmp_newIndex] = Math.Round( model.ConstarintMatrix[j,i],5);
+                        tmp_RemovePairList.Add(model.Subjects[j].Terms[i], model.Subjects[j]);
+                    }
+                }
+                else
+                {
+                    //narrow the types
+                    tmp_types[tmp_newIndex] = model.VarTypes[i];
+                    //narrow the basic matrix value
+                    tmp_basic[tmp_newIndex] = model.Basics[i];
+                    tmp_objectiveMatrix[tmp_newIndex] = model.ObjectiveMatrix[i];
+                    for (int j = 0; j < model.ConstarintMatrix.GetLength(0); j++)
+                    {
+                        tmp_constarintMatrix[j, tmp_newIndex] = Math.Round(model.ConstarintMatrix[j, i], 5);
                     }
                     tmp_newIndex++;
                 }
             }
 
+            foreach (KeyValuePair<Term, Subject> item in tmp_RemovePairList)
+            {
+                item.Value.Terms.Remove(item.Key);
+            }
+
             //Update the objective function original variable with cosntraint value;
             double[] tmp_objectiveMatrixUpdated = new double[tmp_objectiveMatrix.Length];
-            int tmp_ObjectiveLeftValueIndex = model.RightHandMatrix.GetLength(0)-1;
+            int tmp_ObjectiveLeftValueIndex = model.RightHandMatrix.GetLength(0) - 1;
             tmp_objectiveMatrix.CopyTo(tmp_objectiveMatrixUpdated, 0);
-            VariableType tmp_inclusive = (VariableType.Original | VariableType.Slack | VariableType.Excess);
+            //VariableType tmp_inclusive = (VariableType.Original | VariableType.Slack | VariableType.Excess);
             double tmp_pivotValue = 0;
             for (int i = 0; i < tmp_objectiveMatrix.Length; i++)
             {
                 //is variable inclusion group
-                if (tmp_objectiveMatrix[i]!=0 && tmp_types[i] == (tmp_types[i] & tmp_inclusive) )
+                //if (tmp_objectiveMatrix[i] != 0 && tmp_types[i] == (tmp_types[i] & tmp_inclusive))
+                if (tmp_objectiveMatrix[i] != 0 && tmp_basic[i]!= -1 && tmp_constarintMatrix[tmp_basic[i], i]==1)
                 {
                     tmp_pivotValue = tmp_objectiveMatrix[i];
                     //Find the related cosntraint row
@@ -378,31 +507,31 @@ namespace Simplex.Analysis
                         //5)Calculate new objective Row (Rn') by multiple contraint factor.RO'=RO-xRn'
                         for (int k = 0; k < tmp_objectiveMatrix.Length; k++)
                         {
-                            tmp_objectiveMatrixUpdated[k] = Math.Round(tmp_objectiveMatrixUpdated[k] - tmp_pivotValue * tmp_constarintMatrix[j, k],5);
+                            tmp_objectiveMatrixUpdated[k] = Math.Round(tmp_objectiveMatrixUpdated[k] - tmp_pivotValue * tmp_constarintMatrix[j, k], 5);
                         }
                         //in addition set the left value 
-                        model.RightHandMatrix[tmp_ObjectiveLeftValueIndex, 0] = Math.Round(model.RightHandMatrix[tmp_ObjectiveLeftValueIndex, 0] - tmp_pivotValue * model.RightHandMatrix[j, 0],5);
+                        model.RightHandMatrix[tmp_ObjectiveLeftValueIndex, 0] = Math.Round(model.RightHandMatrix[tmp_ObjectiveLeftValueIndex, 0] - tmp_pivotValue * model.RightHandMatrix[j, 0], 5);
                         model.RightHandMatrix[tmp_ObjectiveLeftValueIndex, 1] = 0;
                     }
                 }
             }
-
+            model.Basics = tmp_basic;
             model.VarTypes = tmp_types;
             model.ObjectiveMatrix = tmp_objectiveMatrixUpdated;
             model.ConstarintMatrix = tmp_constarintMatrix;
-
         }
 
         public static void CreateMatrixSet(this StandartSimplexModel model)
         {
             int rowCount = model.Subjects.Count;
-            int columnCount = model.PhaseObjectiveFunction.Terms.Count;
+            int columnCount = model.ObjectiveFunction.Terms.Count;
             double[] tmp_objectiveMatrix = new double[columnCount];
             //miz w= a1  + a2 + a3 + .. +an
             double[] tmp_phaseObjectiveMatrix = new double[columnCount];
             VariableType[] tmp_types = new VariableType[columnCount];
             double[,] tmp_constarintMatrix = new double[rowCount, columnCount];
             double[,] tmp_RightHandMatrix = new double[rowCount+1, 2]; // +1 is for objective function, second dimension is for ratio 
+            int[] tmp_basics = new int[columnCount];
 
             if (model.IsTwoPhase)
             {
@@ -428,6 +557,18 @@ namespace Simplex.Analysis
                 tmp_RightHandMatrix[i, 0] = model.Subjects[i].RightHandValue;
             }
 
+            for (int i = 0; i < tmp_basics.Length; i++)
+            {
+                for (int j = 0; j < rowCount; j++)
+                {
+                    if (tmp_types[i] != VariableType.Original && tmp_constarintMatrix[j, i] == 1)
+                        tmp_basics[i] = j;
+                    else
+                        tmp_basics[i] = -1;
+                }
+            }
+
+            model.Basics = tmp_basics;
             model.ObjectiveMatrix = tmp_objectiveMatrix;
             model.PhaseOneObjectiveMatrix = tmp_phaseObjectiveMatrix;
             model.RightHandMatrix = tmp_RightHandMatrix;
@@ -440,6 +581,7 @@ namespace Simplex.Analysis
             //model.ConstarintMatrix = new Matrix(tmp_constarintMatrix);
 
         }
+
         public static void GenerateBasisMatrices(this RevisedSimplexModel model)
         {
 

@@ -7,7 +7,7 @@ using Simplex.Helper;
 namespace MsTest
 {
     [TestClass]
-    public class UnitTest1
+    public class RegularUnitTest1
     {
         [TestMethod]
         public void MatrixDeterminant_Test()
@@ -50,68 +50,79 @@ namespace MsTest
         }
 
         [TestMethod]
-        public void StandartSimplexModel_Test()
+        public void StandartSimplexModel2_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel2();
-            //simplex.PrintMatrix();
             SimplexModel standartModel = simplex.DeepCopy();
-            standartModel.ConvertStandardModel();
-            //standartModel.PrintMatrix();
-            StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
-            phasemodel.CreatePhaseOneObjective(true);
-            phasemodel.PhaseOnePrintMatrix();
-            Assert.IsNull(standartModel, "success");
-        }
-
-        [TestMethod]
-        public void SolveRegularTwoPhasesSimplexModel1_Test()
-        {
-            SimplexModel simplex = TestHelper.CreateSimplexModel3();
-            //simplex.PrintMatrix();
-            SimplexModel standartModel = simplex.DeepCopy();
-            //standartModel.PrintMatrix();
             StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
             RegularSolver tmp_solver = new RegularSolver();
             Solution tmp_solution = tmp_solver.Solve(phasemodel);
-            //            System.Diagnostics.Debug.WriteLine(tmp_matrix.ToString());
-            if (tmp_solution.Quality == SolutionQuality.Optimal)
-            {
-                System.Diagnostics.Debug.WriteLine("*************************");
-                System.Diagnostics.Debug.WriteLine("***      Solution");
-                foreach (ResultTerm term in tmp_solution.Results)
-                {
-                    string tmp_sign = string.Empty;
-                    System.Diagnostics.Debug.WriteLine("*** Variable | " + term.VarType.ToString() + " | " + term.Vector +  " = " + term.Value.ToString("F5") + " | ***" );
-                }
-                System.Diagnostics.Debug.WriteLine("*************************");
-            }
+            PrintResult(tmp_solution, phasemodel);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
+        public void SolveRegularTwoPhasesSimplexModel3_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel3();
+            SimplexModel standartModel = simplex.DeepCopy();
+            StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
+            RegularSolver tmp_solver = new RegularSolver();
+            Solution tmp_solution = tmp_solver.Solve(phasemodel);
+            PrintResult(tmp_solution, phasemodel);
             Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
         }
 
         [TestMethod]
         public void SolveRegularSimplexModel1_Test()
         {
-            SimplexModel simplex = TestHelper.CreateSimplexModel2();
-            //simplex.PrintMatrix();
+            SimplexModel simplex = TestHelper.CreateSimplexModel1();
             SimplexModel standartModel = simplex.DeepCopy();
-            //standartModel.PrintMatrix();
             StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
             RegularSolver tmp_solver = new RegularSolver();
             Solution tmp_solution = tmp_solver.Solve(phasemodel);
-            //            System.Diagnostics.Debug.WriteLine(tmp_matrix.ToString());
-            if (tmp_solution.Quality == SolutionQuality.Optimal)
+            PrintResult(tmp_solution, phasemodel);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
+        public void SolveRegularSimplexModel4_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel4();
+            SimplexModel standartModel = simplex.DeepCopy();
+            StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
+            RegularSolver tmp_solver = new RegularSolver();
+            Solution tmp_solution = tmp_solver.Solve(phasemodel);
+            PrintResult(tmp_solution, phasemodel);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
+        public void SolveRegularSimplexModel5_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel5();
+            SimplexModel standartModel = simplex.DeepCopy();
+            StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
+            RegularSolver tmp_solver = new RegularSolver();
+            Solution tmp_solution = tmp_solver.Solve(phasemodel);
+            PrintResult(tmp_solution, phasemodel);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        private void PrintResult(Solution solution, StandartSimplexModel simplexModel)
+        {
+            if (solution.Quality == SolutionQuality.Optimal)
             {
                 System.Diagnostics.Debug.WriteLine("*************************");
                 System.Diagnostics.Debug.WriteLine("***      Solution");
-                System.Diagnostics.Debug.WriteLine("***      Optimal Value :" + phasemodel.RightHandMatrix[phasemodel.Subjects.Count,0].ToString("F5") + " | ***");
-                foreach (ResultTerm term in tmp_solution.Results)
+                System.Diagnostics.Debug.WriteLine("***      Optimal Value :" + simplexModel.RightHandMatrix[simplexModel.Subjects.Count, 0].ToString("F5") + " | ***");
+                foreach (ResultTerm term in solution.Results)
                 {
                     string tmp_sign = string.Empty;
                     System.Diagnostics.Debug.WriteLine("*** Variable | " + term.VarType.ToString() + " | " + term.Vector + " = " + term.Value.ToString("F5") + " | ***");
                 }
                 System.Diagnostics.Debug.WriteLine("*************************");
             }
-            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
         }
     }
 }

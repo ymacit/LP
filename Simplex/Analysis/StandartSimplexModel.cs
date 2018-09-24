@@ -16,7 +16,9 @@ namespace Simplex.Analysis
     {
         Subject m_PhaseOneObjective = new Subject() { RightHandValue = 0, Equality= EquailtyType.Equals };
         TestMessage m_testMessage;
+        int[] m_basicMatrix = null;
 
+        int m_currentPhase = 2; //let us assume default is phase II
         double[] m_ObjectiveMatrix = null;
         double[,] m_ConstarintMatrix = null;
         double[,] m_RightHandMatrix = null;
@@ -61,11 +63,21 @@ namespace Simplex.Analysis
             get { return m_PhaseOneObjectiveMatrix; }
             set { m_PhaseOneObjectiveMatrix = value; }
         }
-
         public VariableType[] VarTypes
         {
             get { return m_vartypes; }
             set { m_vartypes = value; }
+        }
+
+        public int CurrentPhase
+        {
+            get { return m_currentPhase; }
+            set { m_currentPhase = value; }
+        }
+        public int[] Basics
+        {
+            get { return m_basicMatrix; }
+            set { m_basicMatrix = value; }
         }
     }
 }

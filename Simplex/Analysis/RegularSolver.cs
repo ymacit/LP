@@ -58,6 +58,7 @@ namespace Simplex.Analysis
         private Solution SolveTwoPhase(StandartSimplexModel simplexModel)
         {
             Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
+            simplexModel.CurrentPhase = 1;
             simplexModel.ConvertStandardModel();
             simplexModel.PrintMatrix();
             simplexModel.CreatePhaseOneObjective(true);
@@ -72,26 +73,29 @@ namespace Simplex.Analysis
              */
             VariableType tmp_inclusive = (VariableType.Original | VariableType.Slack | VariableType.Excess);
 
-            tmp_solution = SolveStandart(simplexModel, simplexModel.VarTypes, tmp_inclusive, simplexModel.PhaseOneObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix);
+            tmp_solution = SolveStandart(simplexModel, simplexModel.VarTypes, tmp_inclusive, simplexModel.PhaseOneObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix,simplexModel.Basics, true);
             //Solving the Phase I LP will result in one of the following three cases:
             //I.Case : If w = 0 
             //TODO test //tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0) - 1, 0] = 0;
             if (tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0)-1, 0] <= m_epsilon)
             {
+                simplexModel.CurrentPhase = 2;
+
                 //transfer the phaseoneobjective function factors
-                simplexModel.TruncateArtificialVariables();
+                simplexModel.TruncatePhaseResult(tmp_solution);
+                simplexModel.PrintMatrix();
                 //II.Case : If w = 0, and no artificial variables are in the optimal Phase I basis:
                 //  i.Drop all columns in the optimal Phase I tableau that correspond to the artificial variables.Drop Phase I row 0.
                 //  ii.Combine the original objective function with the constraints from the optimal Phase I tableau(Phase II LP).If original objective function coefficients of BVs are nonzero row operations are done.
                 //  iii.Solve Phase II LP using the simplex method.The optimal solution to the Phase II LP is the optimal solution to the original LP.
-                tmp_solution = SolveStandart(simplexModel, simplexModel.VarTypes, tmp_inclusive, simplexModel.ObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix);
-                System.Diagnostics.Debug.WriteLine("Solution " + tmp_solution.Quality.ToString());
                 //if ( )
                 //III.Case : If w = 0, and at least one artificial variable is in the optimal Phase I basis:
                 //  i.Drop all columns in the optimal Phase I tableau that correspond to the nonbasic artificial variables and any variable from the original problem that has a negative coefficient in row 0 of the optimal Phase I tableau. Drop Phase I row 0.
                 //  ii.Combine the original objective function with the constraints from the optimal Phase I tableau(Phase II LP).If original objective function coefficients of BVs are nonzero row operations are done.
                 //  iii.Solve Phase II LP using the simplex method.The optimal solution to the Phase II LP is the optimal solution to the original LP.
                 //if ( )
+                tmp_solution = SolveStandart(simplexModel, simplexModel.VarTypes, tmp_inclusive, simplexModel.ObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.Basics, simplexModel.GoalType == ObjectiveType.Minumum);
+                System.Diagnostics.Debug.WriteLine("Solution " + tmp_solution.Quality.ToString());
             }
             //II.Case  : If w > 0 then the original LP has no feasible solution(stop here).
             else
@@ -106,40 +110,31 @@ namespace Simplex.Analysis
         private void PrepareSolutionResult(StandartSimplexModel simplexModel, Solution solution )
         {
             //assign the actual value to the result terms
-            VariableType tmp_inclusive = (VariableType.Original);// | VariableType.Slack);
             if (solution.Quality == SolutionQuality.Optimal || solution.Quality == SolutionQuality.Alternative)
             {
-                for (int i = 0; i < simplexModel.ObjectiveFunction.Terms.Count; i++)
+                for (int i = 0; i < simplexModel.Basics.Length; i++)
                 {
-                    //if variable type is original or slack
-                    if (simplexModel.ObjectiveFunction.Terms[i].VarType == (simplexModel.ObjectiveFunction.Terms[i].VarType & tmp_inclusive))
-                    {
-                        for (int k = 0; k < simplexModel.ConstarintMatrix.GetLength(0); k++)
-                        {
-                            if(simplexModel.ConstarintMatrix[k,i]==1)
-                            {
-                                solution.Results.Add(new ResultTerm() { VarType = simplexModel.ObjectiveFunction.Terms[i].VarType, Vector = simplexModel.ObjectiveFunction.Terms[i].Vector, Value = simplexModel.RightHandMatrix[k, 0] });
-                                break;
-                            }
-                        }
-                    }
+                    if(simplexModel.Basics[i]!=-1)
+                        solution.Results.Add(new ResultTerm() { VarType = simplexModel.ObjectiveFunction.Terms[i].VarType, Vector = simplexModel.ObjectiveFunction.Terms[i].Vector, Value = simplexModel.RightHandMatrix[simplexModel.Basics[i], 0] });
                 }
             }
         }
         private Solution SolveStandart(StandartSimplexModel simplexModel)
         {
             simplexModel.ConvertStandardModel();
-            Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
+            simplexModel.PrintMatrix();
+            simplexModel.CreateMatrixSet();
+            VariableType tmp_inclusive = VariableType.Original | VariableType.Slack;
+
+            Solution tmp_solution= SolveStandart(simplexModel, simplexModel.VarTypes, tmp_inclusive, simplexModel.ObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.Basics, simplexModel.GoalType == ObjectiveType.Minumum) ;
+
+            PrepareSolutionResult(simplexModel, tmp_solution);
 
             return tmp_solution;
+
         }
 
-        private Solution SolveRevisedSimplex(StandartSimplexModel simplexModel, VariableType[] types, VariableType InclusiveTypeBits, double[] objective, double[,] constarints, double[,] RightHandValues)
-        {
-            //TODO invert matrix; 
-            return null;
-        }
-        private Solution SolveStandart(StandartSimplexModel simplexModel, VariableType[] types, VariableType InclusiveTypeBits, double[] objective, double[,] constarints, double[,] RightHandValues)
+        private Solution SolveStandart(StandartSimplexModel simplexModel, VariableType[] types, VariableType InclusiveTypeBits, double[] objective, double[,] constarints, double[,] RightHandValues, int[] basics, bool MaxEntering)
         {
             Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
             PrintMatrix(objective, constarints, RightHandValues, 0);
@@ -168,12 +163,12 @@ namespace Simplex.Analysis
                 //1) Select entering value for original variables in objective function. if maximize, select min value (in negative), if minimize select max value (in positive) for original variables. İf selection is not exist, decide for solution state.
                 // Maksimizasyonda en negatif değere sahip değişken,
                 // Minimizasyonda ise en pozitif değere sahip değişken seçilir.
-                tmp_PivotColIndex = FindEnteringValueIndex(objective, types, InclusiveTypeBits);
+                tmp_PivotColIndex = FindEnteringValueIndex(objective, types, InclusiveTypeBits, MaxEntering);
                 //Check the selected value. If value is zero, nothing to do.
                 if (tmp_PivotColIndex == -1)
                 {
                     tmp_solution.Quality = Enums.SolutionQuality.Optimal;
-                    System.Diagnostics.Debug.WriteLine("Optimal solution is found for problem ", "SolveStandart");
+                    System.Diagnostics.Debug.WriteLine("Optimal solution is found for this problem ", "SolveStandart");
                     break;                    
                 }
                 
@@ -193,8 +188,8 @@ namespace Simplex.Analysis
                     System.Diagnostics.Debug.WriteLine("Problem is Unbounded.", "SolveStandart");
                     break;
                 }
-                System.Diagnostics.Debug.WriteLine("Selected Pivot Row = " + tmp_PivotRowIndex, "SolveStandart");
-
+                System.Diagnostics.Debug.WriteLine("Selected Variable = " +  simplexModel.Subjects[0].Terms[tmp_PivotColIndex].Vector + " Pivot Row = " + tmp_PivotRowIndex, "SolveStandart");
+                basics[tmp_PivotColIndex] = tmp_PivotRowIndex;
                 //4)Calculate new Row (Rn') for selected tmp_PivotRowIndex
                 System.Diagnostics.Debug.WriteLine("**********New Row*********");
                 tmp_pivotValue = constarints[tmp_PivotRowIndex, tmp_PivotColIndex];
@@ -241,7 +236,6 @@ namespace Simplex.Analysis
             tmp_solution.ObjectiveMatrix = objective;
             tmp_solution.RightHandValues = RightHandValues;
             return tmp_solution;
-
         }
 
         public void PrintMatrix(double[] objective, double[,] constarints, double[,] RightHandValues, int iteration)
@@ -272,19 +266,24 @@ namespace Simplex.Analysis
             System.Diagnostics.Debug.WriteLine("*********************************");
         }
 
-        private int FindEnteringValueIndex(double[] matrix, VariableType[] types, VariableType InclusiveType)
+        private int FindEnteringValueIndex(double[] matrix, VariableType[] types, VariableType InclusiveType, bool MaxEntering)
         {
             int tmp_index = -1; 
             double tmp_value = 0;
             for (int i = 0; i < matrix.Length; i++)
             {
-                if (matrix[i] > tmp_value && (types[i] == (types[i] & InclusiveType)))
+                if (MaxEntering && matrix[i] > tmp_value && (types[i] == (types[i] & InclusiveType)))
+                {
+                    tmp_value = matrix[i];
+                    tmp_index = i;
+                }
+                else if (!MaxEntering && matrix[i] < tmp_value && (types[i] == (types[i] & InclusiveType)))
                 {
                     tmp_value = matrix[i];
                     tmp_index = i;
                 }
             }
-            System.Diagnostics.Debug.WriteLine("max value :" + tmp_value.ToString(), "FindEnteringValueIndex");
+            System.Diagnostics.Debug.WriteLine("Selected value :" + tmp_value.ToString(), "FindEnteringValueIndex");
             return tmp_index;
         }
 

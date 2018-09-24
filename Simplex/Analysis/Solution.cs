@@ -21,6 +21,7 @@ namespace Simplex.Analysis
         {
             Results = new List<ResultTerm>();
         }
+
         public List<ResultTerm> Results { get; set; }
 
         /// <summary>

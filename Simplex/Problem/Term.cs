@@ -13,6 +13,7 @@ namespace Simplex.Problem
         double m_FactorValue = 0;
         string m_label = string.Empty;
         int m_index = -1;
+        bool m_isBasic = false;
         
         public VariableType VarType
         {
@@ -47,6 +48,11 @@ namespace Simplex.Problem
                 else
                     return true;
             }
+        }
+        public bool isBasic
+        {
+            get { return m_isBasic;}
+            set { m_isBasic = value; }
         }
     }
 }

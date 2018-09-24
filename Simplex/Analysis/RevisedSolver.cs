@@ -80,7 +80,7 @@ namespace Simplex.Analysis
             if (tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0)-1, 0] == 0)
             {
                 //transfer the phaseoneobjective function factors
-                simplexModel.TruncateArtificialVariables();
+                simplexModel.TruncatePhaseResult(tmp_solution);
                 //II.Case : If w = 0, and no artificial variables are in the optimal Phase I basis:
                 //  i.Drop all columns in the optimal Phase I tableau that correspond to the artificial variables.Drop Phase I row 0.
                 //  ii.Combine the original objective function with the constraints from the optimal Phase I tableau(Phase II LP).If original objective function coefficients of BVs are nonzero row operations are done.
