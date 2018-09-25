@@ -32,6 +32,25 @@ namespace Simplex.Analysis
             //1) Check and update Right Hand Side- RHS value for positive 
             UpdateNegativeRHSValues(model);
 
+            Dictionary<string, Term> m_VectorList = new Dictionary<string, Term>();
+            //1.X) find the native varibles count in model
+            foreach (Subject constarint in model.Subjects)
+            {
+
+                foreach (Term term in constarint.Terms)
+                {
+                    if (!m_VectorList.ContainsKey(term.Vector))
+                        m_VectorList.Add(term.Vector, term);
+                }
+            }
+            //1.X) if one of term contained only one cosntarint that ise basic varibale, let us find it
+            foreach (KeyValuePair<string, Term> item in m_VectorList)
+            {
+                List<Subject> tmp_list = model.Subjects.Where(subject => subject.Terms.Any(term => term.Vector.Equals(item.Key))).ToList();
+                if (tmp_list.Count == 1 && tmp_list[0].Equality == EquailtyType.Equals)
+                    item.Value.isBasic = true;
+            }
+
             //2) Add variables for BFS
             //2.1) add slack,excess and artificial Term to constarints
             string m_slackPrefix = "s";
@@ -40,7 +59,6 @@ namespace Simplex.Analysis
             int m_excesscount = 1;
             string m_artificialPrefix = "a";
             int m_artificialcount = 1;
-            Dictionary<string, Term> m_VectorList = new Dictionary<string, Term>();
             foreach (Subject constarint in model.Subjects)
             {
                 //1) add slack Term for not equal constarint
@@ -56,9 +74,12 @@ namespace Simplex.Analysis
                         m_excesscount++;
                         m_artificialcount++;
                         break;
-                    default: // if constarint equation = then plus artificial variable at the left side
-                        constarint.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Artificial, Vector = m_artificialPrefix + m_artificialcount.ToString(), Index = constarint.Terms.Count - 1 });
-                        m_artificialcount++;
+                    default: // if constarint equation is eqal and subject dos nat contain basic term, then plus artificial variable at the left side
+                        if (!constarint.Terms.Any(term => term.isBasic == true))
+                        {
+                            constarint.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Artificial, Vector = m_artificialPrefix + m_artificialcount.ToString(), Index = constarint.Terms.Count - 1 });
+                            m_artificialcount++;
+                        }
                         break;
                 }
             }
@@ -84,14 +105,13 @@ namespace Simplex.Analysis
                 }
             }
 
-            ////3.X) if one of term contains of only one cosntarint that ise basic varibale, let us find it
-            //foreach (KeyValuePair<string, Term> item in m_VectorList)
-            //{
-            //    List<Subject> tmp_list = model.Subjects.Where(subject => subject.Terms.Any(term => term.Vector.Equals(item.Key))).ToList();
-            //    if (tmp_list.Count == 1 && tmp_list[0].Equality== EquailtyType.Equals)
-            //        item.Value.isBasic = true;
-            //    //(term => term.VarType== VariableType.Artificial).ToList();
-            //}
+            //3.X) if one of term that is non original contained only one cosntarint that ise basic varibale, let us find it
+            foreach (KeyValuePair<string, Term> item in m_VectorList)
+            {
+                List<Subject> tmp_list = model.Subjects.Where(subject => subject.Terms.Any(term => term.Vector.Equals(item.Key) && term.VarType!= VariableType.Original  && term.Factor==1)).ToList();
+                if (tmp_list.Count == 1)
+                    item.Value.isBasic = true;
+            }
 
             //3.2) Check and collect vector label for objective funtion
             foreach (Term term in model.ObjectiveFunction.Terms)
@@ -445,14 +465,26 @@ namespace Simplex.Analysis
         private static void TruncatePhaseColumns(StandartSimplexModel model, List<int> removeList)
         {
             //declare new matrix for replace Phase I result 
+            int tmp_rowCount = model.ConstarintMatrix.GetLength(0);
+            int tmp_oldColumnCount = model.ObjectiveMatrix.Length;
             int tmp_removeCount = removeList.Count;
-            int[] tmp_basic = new int[model.Basics.Length - tmp_removeCount];
-            double[] tmp_objectiveMatrix = new double[model.ObjectiveMatrix.Length - tmp_removeCount];
-            VariableType[] tmp_types = new VariableType[model.VarTypes.Length - tmp_removeCount];
-            double[,] tmp_constarintMatrix = new double[model.ConstarintMatrix.GetLength(0), model.ConstarintMatrix.GetLength(1) - tmp_removeCount];
+            int[] tmp_oldbasic = new int[tmp_oldColumnCount];
+            int[] tmp_basic = new int[tmp_oldColumnCount - tmp_removeCount];
+            double[] tmp_objectiveMatrix = new double[tmp_oldColumnCount - tmp_removeCount];
+            VariableType[] tmp_types = new VariableType[tmp_oldColumnCount - tmp_removeCount];
+            double[,] tmp_constarintMatrix = new double[tmp_rowCount, tmp_oldColumnCount - tmp_removeCount];
 
+            //transfer the basic flag to teh temprory array
+            for (int i = 0; i < tmp_oldColumnCount; i++)
+            {
+                tmp_oldbasic[i] = -1;
+            }
+            for (int i = 0; i < tmp_rowCount; i++)
+            {
+                if (model.RightHandMatrix[i, 1] != -1)
+                    tmp_oldbasic[(int)model.RightHandMatrix[i, 1]] = i;
+            }
             Dictionary<Term, Subject> tmp_RemovePairList = new Dictionary<Term, Subject>();
-
             int tmp_newIndex = 0;
             for (int i = 0; i < model.PhaseOneObjectiveMatrix.Length; i++)
             {
@@ -469,7 +501,7 @@ namespace Simplex.Analysis
                     //narrow the types
                     tmp_types[tmp_newIndex] = model.VarTypes[i];
                     //narrow the basic matrix value
-                    tmp_basic[tmp_newIndex] = model.Basics[i];
+                    tmp_basic[tmp_newIndex] = tmp_oldbasic[i];
                     tmp_objectiveMatrix[tmp_newIndex] = model.ObjectiveMatrix[i];
                     for (int j = 0; j < model.ConstarintMatrix.GetLength(0); j++)
                     {
@@ -515,7 +547,16 @@ namespace Simplex.Analysis
                     }
                 }
             }
-            model.Basics = tmp_basic;
+            //transfer temprory basic set to righthand
+            for (int i = 0; i < tmp_rowCount; i++)
+            {
+                model.RightHandMatrix[i, 1] = -1;
+            }
+            for (int i = 0; i < tmp_basic.Length; i++)
+            {
+                if(tmp_basic[i]!=-1)
+                    model.RightHandMatrix[tmp_basic[i], 1] = i;
+            }
             model.VarTypes = tmp_types;
             model.ObjectiveMatrix = tmp_objectiveMatrixUpdated;
             model.ConstarintMatrix = tmp_constarintMatrix;
@@ -531,7 +572,6 @@ namespace Simplex.Analysis
             VariableType[] tmp_types = new VariableType[columnCount];
             double[,] tmp_constarintMatrix = new double[rowCount, columnCount];
             double[,] tmp_RightHandMatrix = new double[rowCount+1, 2]; // +1 is for objective function, second dimension is for ratio 
-            int[] tmp_basics = new int[columnCount];
 
             if (model.IsTwoPhase)
             {
@@ -550,35 +590,24 @@ namespace Simplex.Analysis
 
             for (int i = 0; i < rowCount; i++)
             {
+                //set the basic variable flag as -1
+                tmp_RightHandMatrix[i, 1] = -1;
                 for (int j = 0; j < columnCount; j++)
                 {
                     tmp_constarintMatrix[i, j] = model.Subjects[i].Terms[j].Factor;
+                    
+                    //set the basic variable flag as j
+                    if (model.Subjects[i].Terms[j].isBasic)
+                        tmp_RightHandMatrix[i, 1] = j;
                 }
                 tmp_RightHandMatrix[i, 0] = model.Subjects[i].RightHandValue;
             }
 
-            for (int i = 0; i < tmp_basics.Length; i++)
-            {
-                for (int j = 0; j < rowCount; j++)
-                {
-                    if (tmp_types[i] != VariableType.Original && tmp_constarintMatrix[j, i] == 1)
-                        tmp_basics[i] = j;
-                    else
-                        tmp_basics[i] = -1;
-                }
-            }
-
-            model.Basics = tmp_basics;
             model.ObjectiveMatrix = tmp_objectiveMatrix;
             model.PhaseOneObjectiveMatrix = tmp_phaseObjectiveMatrix;
             model.RightHandMatrix = tmp_RightHandMatrix;
             model.ConstarintMatrix = tmp_constarintMatrix;
             model.VarTypes = tmp_types;
-
-            //model.ObjectiveMatrix = new Matrix(tmp_objectiveMatrix);
-            //model.PhaseOneObjectiveMatrix = new Matrix(tmp_phaseObjectiveMatrix);
-            //model.RightHandMatrix = new Matrix(tmp_RightHandMatrix);
-            //model.ConstarintMatrix = new Matrix(tmp_constarintMatrix);
 
         }
 

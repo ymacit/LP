@@ -9,6 +9,9 @@ namespace MsTest
     [TestClass]
     public class RegularUnitTest1
     {
+        private const int m_digitRound = 3;
+        private const string m_doubleFormat = "F3";
+
         [TestMethod]
         public void MatrixDeterminant_Test()
         {
@@ -114,12 +117,12 @@ namespace MsTest
             if (solution.Quality == SolutionQuality.Optimal)
             {
                 System.Diagnostics.Debug.WriteLine("*************************");
-                System.Diagnostics.Debug.WriteLine("***      Solution");
-                System.Diagnostics.Debug.WriteLine("***      Optimal Value :" + simplexModel.RightHandMatrix[simplexModel.Subjects.Count, 0].ToString("F5") + " | ***");
+                System.Diagnostics.Debug.WriteLine("***         Solution");
+                System.Diagnostics.Debug.WriteLine("***         Optimal Value :" + simplexModel.RightHandMatrix[simplexModel.Subjects.Count, 0].ToString(m_doubleFormat) + "***".PadLeft(15));
                 foreach (ResultTerm term in solution.Results)
                 {
                     string tmp_sign = string.Empty;
-                    System.Diagnostics.Debug.WriteLine("*** Variable | " + term.VarType.ToString() + " | " + term.Vector + " = " + term.Value.ToString("F5") + " | ***");
+                    System.Diagnostics.Debug.WriteLine("*** Variable | " + term.VarType.ToString().PadRight(10) + " | " + term.Vector + " = " + term.Value.ToString(m_doubleFormat).PadLeft(10) + " | ***");
                 }
                 System.Diagnostics.Debug.WriteLine("*************************");
             }
