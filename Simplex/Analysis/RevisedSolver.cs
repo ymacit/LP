@@ -35,21 +35,23 @@ using System.Collections.Generic;
 using System.Text;
 using Simplex.Enums;
 using Simplex.Helper;
+using Simplex.Problem;
 
 namespace Simplex.Analysis
 {
-    public class RevisedSolver
+    public class RevisedSolver : SolverBase
     {
 
-        public Solution Solve(RevisedSimplexModel simplexModel)
+        public  override Solution Solve(SimplexModel simplexModel)
         {
-
-
             Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
-            if (simplexModel.IsTwoPhase)
-                tmp_solution = SolveTwoPhase(simplexModel);
+            StandartSimplexModel phasemodel = new StandartSimplexModel(simplexModel);
+            RevisedSimplexModel revisedModel = new RevisedSimplexModel(phasemodel);
+
+            if (phasemodel.IsTwoPhase)
+                tmp_solution = SolveTwoPhase(revisedModel);
             else
-                tmp_solution = SolveStandart(simplexModel);
+                tmp_solution = Solve(revisedModel.VarTypes, VariableType.Original | VariableType.Slack, revisedModel.NonBasisMatrix, revisedModel.BasisObjectiveMatrix, revisedModel.NonBasisMatrix, revisedModel.NonBasisMatrix, revisedModel.BasisRightHandMatrix, false);
 
             //initial table mut be contain nXn unit matrix that consist of basic varibales ( slack + artificial not original and excess) for feaseble solution
             //for feaseble solution, all of rhs values must be positive or zero and Z must be zero after all iteration 
@@ -71,9 +73,9 @@ namespace Simplex.Analysis
              * 3. Add an artificial variable ai to the constraints identified as ≥ or = constraints at the end of Step 1. Also add the sign restriction ai ≥ 0. 
              * 4. In the phase I, ignore the original LP’s objective function, instead solve an LP whose objective function is minimizing w = ai (sum of all the artificial variables). The act of solving the Phase I LP will force the artificial variables to be zero. 5. Since each artificial variable will be in the starting basis, all artificial variables must be eliminated from row 0 before beginning the simplex. Now solve the transformed problem by the simplex.              
              */
-            VariableType tmp_inclusive = (VariableType.Original | VariableType.Slack | VariableType.Excess);
+            VariableType tmp_inclusive = VariableType.Original | VariableType.Slack | VariableType.Excess;
 
-            tmp_solution = SolveStandart(simplexModel, simplexModel.VarTypes, tmp_inclusive, simplexModel.BasisObjectiveMatrix, simplexModel.PhaseOneBasisObjectiveMatrix, simplexModel.PhaseOneBasisMatrix, simplexModel.PhaseOneNonBasisMatrix, simplexModel.PhaseOneBasisRightHandMatrix,  false);
+            tmp_solution = Solve(simplexModel.VarTypes, tmp_inclusive, simplexModel.BasisObjectiveMatrix, simplexModel.PhaseOneBasisObjectiveMatrix, simplexModel.PhaseOneBasisMatrix, simplexModel.PhaseOneNonBasisMatrix, simplexModel.PhaseOneBasisRightHandMatrix,  false);
             //Solving the Phase I LP will result in one of the following three cases:
             //I.Case : If w = 0 
             //TODO test //tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0) - 1, 0] = 0;
@@ -85,7 +87,7 @@ namespace Simplex.Analysis
                 //  i.Drop all columns in the optimal Phase I tableau that correspond to the artificial variables.Drop Phase I row 0.
                 //  ii.Combine the original objective function with the constraints from the optimal Phase I tableau(Phase II LP).If original objective function coefficients of BVs are nonzero row operations are done.
                 //  iii.Solve Phase II LP using the simplex method.The optimal solution to the Phase II LP is the optimal solution to the original LP.
-                tmp_solution = SolveStandart(simplexModel, simplexModel.VarTypes, tmp_inclusive, simplexModel.BasisObjectiveMatrix, simplexModel.PhaseOneBasisObjectiveMatrix, simplexModel.PhaseOneNonBasisMatrix, simplexModel.PhaseOneBasisRightHandMatrix, simplexModel.PhaseOneBasisMatrix, false);
+                tmp_solution = Solve(simplexModel.VarTypes, tmp_inclusive, simplexModel.BasisObjectiveMatrix, simplexModel.PhaseOneBasisObjectiveMatrix, simplexModel.PhaseOneNonBasisMatrix, simplexModel.PhaseOneBasisRightHandMatrix, simplexModel.PhaseOneBasisMatrix, false);
                 System.Diagnostics.Debug.WriteLine("Solution " + tmp_solution.Quality.ToString());
                 //if ( )
                 //III.Case : If w = 0, and at least one artificial variable is in the optimal Phase I basis:
@@ -104,46 +106,11 @@ namespace Simplex.Analysis
             return tmp_solution;
         }
 
-        private void PrepareSolutionResult(StandartSimplexModel simplexModel, Solution solution )
-        {
-            //assign the actual value to the result terms
-            VariableType tmp_inclusive = (VariableType.Original);// | VariableType.Slack);
-            if (solution.Quality == SolutionQuality.Optimal || solution.Quality == SolutionQuality.Alternative)
-            {
-                for (int i = 0; i < simplexModel.ObjectiveFunction.Terms.Count; i++)
-                {
-                    //if variable type is original or slack
-                    if (simplexModel.ObjectiveFunction.Terms[i].VarType == (simplexModel.ObjectiveFunction.Terms[i].VarType & tmp_inclusive))
-                    {
-                        for (int k = 0; k < simplexModel.ConstarintMatrix.GetLength(0); k++)
-                        {
-                            if(simplexModel.ConstarintMatrix[k,i]==1)
-                            {
-                                solution.Results.Add(new ResultTerm() { VarType = simplexModel.ObjectiveFunction.Terms[i].VarType, Vector = simplexModel.ObjectiveFunction.Terms[i].Vector, Value = simplexModel.RightHandMatrix[k, 0] });
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        private Solution SolveStandart(StandartSimplexModel simplexModel)
-        {
-            simplexModel.ConvertStandardModel();
-            Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
-
-            return tmp_solution;
-        }
-
-        private Solution SolveRevisedSimplex(RevisedSimplexModel simplexModel, Matrix BasisObjective, Matrix Basis, Matrix NonBasis, Matrix BasisRightHand)
-        {
-            //TODO invert matrix; 
-            return null;
-        }
-        private Solution SolveStandart(RevisedSimplexModel simplexModel, VariableType[] types, VariableType InclusiveTypeBits, Matrix nonBasisObjective, Matrix basisObjective, Matrix basis, Matrix nonBasis, Matrix rightHandValues, bool artificial)
+        private Solution Solve(VariableType[] types, VariableType InclusiveTypeBits, Matrix nonBasisObjective, Matrix basisObjective, Matrix basis, Matrix nonBasis, Matrix rightHandValues, bool artificial)
         {
             Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
-            PrintMatrix(nonBasisObjective, basisObjective, nonBasis, rightHandValues, basis, 0);
+            //PrintMatrix(basisObjective, nonBasis, rightHandValues, basis, 0);
+
             //int tmp_ObjectiveLeftValueIndex = RightHandValues.GetLength(0) - 1;
             //bool tmp_continue = true;
             //int tmp_iteration = 1;
@@ -177,7 +144,7 @@ namespace Simplex.Analysis
             //        System.Diagnostics.Debug.WriteLine("Optimal solution is found for problem ", "SolveStandart");
             //        break;                    
             //    }
-                
+
             //    System.Diagnostics.Debug.WriteLine("Entering Objective Index = " + tmp_PivotColIndex, "SolveStandart");
             //    //2)Calculate the ratio for selected varible all of constarint and set teh RightHandValues[,1]
             //    for (int i = 0; i < constarints.GetLength(0); i++)
@@ -243,93 +210,6 @@ namespace Simplex.Analysis
             //tmp_solution.RightHandValues = RightHandValues;
             return tmp_solution;
 
-        }
-
-        public void PrintMatrix(Matrix nonBasiSObjective,  Matrix objective, Matrix nonBasis, Matrix rightHand, Matrix basis, int iteration)
-        {
-            string tmp_sign = string.Empty;
-            System.Diagnostics.Debug.WriteLine("*********************************");
-            for (int i = 0; i < nonBasiSObjective.rows; i++)
-            {
-                tmp_sign = string.Empty;
-                if (Math.Sign(nonBasiSObjective[i, 0]) >= 0)
-                    tmp_sign = "+";
-                System.Diagnostics.Debug.Write(tmp_sign + nonBasiSObjective[i, 0].ToString("F3") + " ");
-            }
-            System.Diagnostics.Debug.WriteLine("   İteration " + iteration.ToString());
-            for (int i = 0; i < objective.rows ; i++)
-            {
-                tmp_sign = string.Empty;
-                if (Math.Sign(objective[i,0]) >= 0)
-                    tmp_sign = "+";
-                System.Diagnostics.Debug.Write(tmp_sign + objective[i,0].ToString("F3") + " ");
-            }
-            System.Diagnostics.Debug.WriteLine(" = " + rightHand[rightHand.rows-1,0].ToString());
-            System.Diagnostics.Debug.WriteLine("     *******Constarints*****    ");
-            for (int i = 0; i < nonBasis.rows; i++)
-            {
-                for (int j = 0; j < nonBasis.cols; j++)
-                {
-                    tmp_sign = string.Empty;
-                    if (Math.Sign(nonBasis[i,j]) >= 0)
-                        tmp_sign = "+";
-                    System.Diagnostics.Debug.Write(tmp_sign + nonBasis[i,j].ToString("F3") + " ");
-                }
-
-                System.Diagnostics.Debug.Write(" | ");
-
-                for (int k = 0; k < basis.cols; k++)
-                {
-                    tmp_sign = string.Empty;
-                    if (Math.Sign(basis[i, k]) >= 0)
-                        tmp_sign = "+";
-                    System.Diagnostics.Debug.Write(tmp_sign + basis[i, k].ToString("F3") + " ");
-                }
-                System.Diagnostics.Debug.WriteLine("|  = " + rightHand[i, 0].ToString("F4"));
-            }
-            System.Diagnostics.Debug.WriteLine("*********************************");
-        }
-
-        private int FindEnteringValueIndex(double[] matrix, VariableType[] types, VariableType InclusiveType,  bool artificial)
-        {
-            int tmp_index = -1; 
-            double tmp_value = 0;
-            for (int i = 0; i < matrix.Length; i++)
-            {
-                if (artificial)
-                {
-                    if (matrix[i] < tmp_value && (types[i] == (types[i] & InclusiveType)))
-                    {
-                        tmp_value = matrix[i];
-                        tmp_index = i;
-                    }
-                }
-                else
-                {
-                    if (matrix[i] > tmp_value && (types[i] == (types[i] & InclusiveType)))
-                    {
-                        tmp_value = matrix[i];
-                        tmp_index = i;
-                    }
-                }
-            }
-            System.Diagnostics.Debug.WriteLine("max value :" + tmp_value.ToString(), "FindEnteringValueIndex");
-            return tmp_index;
-        }
-
-        private int FindLeavingValueIndex(double[,] matrix, int column, bool max)
-        {
-            int tmp_index = -1;
-            double tmp_value = double.MaxValue;
-            for (int i = 0; i < matrix.GetLength(0); i++)
-            {
-                if (matrix[i, column]>0 &&  matrix[i, column] < tmp_value )
-                {
-                    tmp_value = matrix[i, column];
-                    tmp_index = i;
-                }
-            }
-            return tmp_index;
         }
     }
 }

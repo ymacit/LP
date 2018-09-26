@@ -112,6 +112,18 @@ namespace MsTest
             Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
         }
 
+        [TestMethod]
+        public void SolveRegularSimplexModel6_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel6();
+            SimplexModel standartModel = simplex.DeepCopy();
+            StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
+            RegularSolver tmp_solver = new RegularSolver();
+            Solution tmp_solution = tmp_solver.Solve(phasemodel);
+            PrintResult(tmp_solution, phasemodel);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
         private void PrintResult(Solution solution, StandartSimplexModel simplexModel)
         {
             if (solution.Quality == SolutionQuality.Optimal)

@@ -190,5 +190,58 @@ namespace MsTest
 
             return simplex;
         }
+
+        internal static SimplexModel CreateSimplexModel6()
+        {
+            SimplexModel simplex = new SimplexModel();
+
+            //Maks x1 + 2x2 – x3 + x4 + 4x5 – 2x6
+            simplex.GoalType = ObjectiveType.Maximum;
+            simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
+            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
+            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X2" });
+            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X3" });
+            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
+            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 4, VarType = VariableType.Original, Vector = "X5" });
+            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -2, VarType = VariableType.Original, Vector = "X6" });
+
+            Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.LessEquals, RightHandValue = 6 };
+            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
+            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
+            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
+            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
+            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X5" });
+            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X6" });
+
+            Subject subject2 = new Subject() { Index = 2, RowLabel = "R2", Equality = EquailtyType.LessEquals, RightHandValue = 4 };
+            subject2.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X1" });
+            subject2.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X2" });
+            subject2.Terms.Add(new Term() { Factor = -2, VarType = VariableType.Original, Vector = "X3" });
+            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
+
+
+            Subject subject3 = new Subject() { Index = 2, RowLabel = "R3", Equality = EquailtyType.Equals, RightHandValue = 4 };
+            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
+            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
+            subject3.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X5" });
+            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X6" });
+
+
+            simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2, subject3 };
+
+            /*
+             * Regular Result
+             * *************************
+             ***         Solution
+             ***         Optimal Value :16,000            ***
+             *** Variable | Original   | X2 =      4,000 | ***
+             *** Variable | Slack      | s2 =      8,000 | ***
+             *** Variable | Original   | X5 =      2,000 | ***
+             *************************
+             * 
+            */
+
+            return simplex;
+        }
     }
 }
