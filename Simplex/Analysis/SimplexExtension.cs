@@ -19,7 +19,7 @@ namespace Simplex.Analysis
 {
     public static class SimplexExtension
     {
-        public static void ConvertStandardModel(this SimplexModel model)
+        public static void ConvertStandardModel(this ISimplexModel model)
         {
 
             //Steps
@@ -148,7 +148,7 @@ namespace Simplex.Analysis
             #endregion
         }
 
-        public static void PrintMatrix(this SimplexModel model)
+        public static void PrintMatrix(this  ISimplexModel model)
         {
             string tmp_sign = string.Empty;
             System.Diagnostics.Debug.WriteLine("*********************************");
@@ -187,7 +187,7 @@ namespace Simplex.Analysis
         }
         internal static void PhaseOnePrintMatrix(this StandartSimplexModel model)
         {
-            PrintMatrix((SimplexModel)model);
+            PrintMatrix((ISimplexModel)model);
 
             string tmp_sign = string.Empty;
             System.Diagnostics.Debug.WriteLine("Goal :" + model.GoalType.ToString());
@@ -203,7 +203,7 @@ namespace Simplex.Analysis
             System.Diagnostics.Debug.WriteLine(model.PhaseObjectiveFunction.RightHandValue);
             System.Diagnostics.Debug.WriteLine("*********************************");
         }
-        public static void UpdateNegativeRHSValues(this SimplexModel model)
+        public static void UpdateNegativeRHSValues(this ISimplexModel model)
         {
             //1) Check and update Right Hand Side- RHS value for positive 
             foreach (Subject constarint in model.Subjects)
@@ -363,18 +363,18 @@ namespace Simplex.Analysis
             List<int> tmp_totalRemoveIndex = new List<int>();
             bool tmp_retainArtficialFound = false; //if retain and remove count are eqauls as aritmetich operation
 
-            for (int i = 0; i < model.PhaseOneObjectiveMatrix.Length; i++)
+            for (int i = 0; i < model.ArtificialObjectiveMatrix.Length; i++)
             {
                 if (model.VarTypes[i] == VariableType.Artificial)
                 {
-                    if (model.PhaseOneObjectiveMatrix[i] < 0)
+                    if (model.ArtificialObjectiveMatrix[i] < 0)
                         tmp_RemoveArtficialIndex.Add(i);
                     else
                         tmp_retainArtficialFound = true;
                 }
                 else
                 {
-                    if (model.PhaseOneObjectiveMatrix[i] < 0)
+                    if (model.ArtificialObjectiveMatrix[i] < 0)
                         tmp_RemoveOtherIndex.Add(i);
                 }
             }
@@ -411,7 +411,7 @@ namespace Simplex.Analysis
         //    double[,] tmp_constarintMatrix = new double[model.ConstarintMatrix.GetLength(0), model.ConstarintMatrix.GetLength(1)- tmp_removeCount];
 
         //    int tmp_newIndex = 0;
-        //    for (int i = 0; i < model.PhaseOneObjectiveMatrix.Length; i++)
+        //    for (int i = 0; i < model.ArtificialObjectiveMatrix.Length; i++)
         //    {
         //        if(model.VarTypes[i] != VariableType.Artificial)
         //        {
@@ -486,7 +486,7 @@ namespace Simplex.Analysis
             }
             Dictionary<Term, Subject> tmp_RemovePairList = new Dictionary<Term, Subject>();
             int tmp_newIndex = 0;
-            for (int i = 0; i < model.PhaseOneObjectiveMatrix.Length; i++)
+            for (int i = 0; i < model.ArtificialObjectiveMatrix.Length; i++)
             {
                 if (removeList.Contains(i))
                 {
@@ -604,7 +604,7 @@ namespace Simplex.Analysis
             }
 
             model.ObjectiveMatrix = tmp_objectiveMatrix;
-            model.PhaseOneObjectiveMatrix = tmp_phaseObjectiveMatrix;
+            model.ArtificialObjectiveMatrix = tmp_phaseObjectiveMatrix;
             model.RightHandMatrix = tmp_RightHandMatrix;
             model.ConstarintMatrix = tmp_constarintMatrix;
             model.VarTypes = tmp_types;

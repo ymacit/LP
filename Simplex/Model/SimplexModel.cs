@@ -12,7 +12,7 @@ using Simplex.Enums;
 namespace Simplex.Model
 {
     [Serializable]
-    public class SimplexModel
+    public class SimplexModel: ISimplexModel
     {
         Subject m_objective = new Subject();
         List<Subject> m_subjects = new List<Subject>();

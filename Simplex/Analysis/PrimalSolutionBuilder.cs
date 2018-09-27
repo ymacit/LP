@@ -58,7 +58,7 @@ namespace Simplex.Analysis
              */
             VariableType tmp_inclusive = VariableType.Original | VariableType.Slack | VariableType.Excess;
 
-            tmp_solution = Solve(simplexModel.VarTypes, tmp_inclusive, simplexModel.PhaseOneObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix,true);
+            tmp_solution = Solve(simplexModel.VarTypes, tmp_inclusive, simplexModel.ArtificialObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix,true);
             //Solving the Phase I LP will result in one of the following three cases:
             //I.Case : If w = 0 
             //TODO test //tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0) - 1, 0] = 0;

@@ -42,9 +42,9 @@ namespace Simplex.Helper
 {
     public class Matrix
     {
-        public int rows;
-        public int cols;
-        public double[] mat;
+        public int RowCount;
+        public int ColumnCount;
+        public double[] StorageArray;
 
         public Matrix L;
         public Matrix U;
@@ -53,74 +53,74 @@ namespace Simplex.Helper
 
         public Matrix(int iRows, int iCols)         // Matrix Class constructor
         {
-            rows = iRows;
-            cols = iCols;
-            mat = new double[rows * cols];
+            RowCount = iRows;
+            ColumnCount = iCols;
+            StorageArray = new double[RowCount * ColumnCount];
         }
 
         public Matrix(double[] matrix )         // Matrix Class constructor
         {
-            rows = 1;
-            cols = matrix.Length;
-            mat = new double[rows * cols];
-            matrix.CopyTo(mat, 0);
+            RowCount = 1;
+            ColumnCount = matrix.Length;
+            StorageArray = new double[RowCount * ColumnCount];
+            matrix.CopyTo(StorageArray, 0);
         }
 
         public Matrix(double[,] matrix)         // Matrix Class constructor
         {
-            rows = matrix.GetLength(0);
-            cols = matrix.GetLength(1);
-            mat = new double[rows * cols];
-            for (int i = 0; i < rows; i++)
+            RowCount = matrix.GetLength(0);
+            ColumnCount = matrix.GetLength(1);
+            StorageArray = new double[RowCount * ColumnCount];
+            for (int i = 0; i < RowCount; i++)
             {
-                for (int j = 0; j < cols; j++)
+                for (int j = 0; j < ColumnCount; j++)
                 {
-                    mat[i * cols + j] = matrix[i, j];
+                    StorageArray[i * ColumnCount + j] = matrix[i, j];
                 }
             }
         }
 
         public Boolean IsSquare()
         {
-            return (rows == cols);
+            return (RowCount == ColumnCount);
         }
 
         public double this[int iRow, int iCol]      // Access this matrix as a 2D array
         {
-            get { return mat[iRow * cols + iCol]; }
-            set { mat[iRow * cols + iCol] = value; }
+            get { return StorageArray[iRow * ColumnCount + iCol]; }
+            set { StorageArray[iRow * ColumnCount + iCol] = value; }
         }
 
         public Matrix GetCol(int k)
         {
-            Matrix m = new Matrix(rows, 1);
-            for (int i = 0; i < rows; i++) m[i, 0] = this[i, k];
+            Matrix m = new Matrix(RowCount, 1);
+            for (int i = 0; i < RowCount; i++) m[i, 0] = this[i, k];
             return m;
         }
 
         public void SetCol(Matrix v, int k)
         {
-            for (int i = 0; i < rows; i++) this[i, k] = v[i, 0];
+            for (int i = 0; i < RowCount; i++) this[i, k] = v[i, 0];
         }
 
         public void MakeLU()                        // Function for LU decomposition
         {
             if (!IsSquare()) throw new MException("The matrix is not square!");
-            L = IdentityMatrix(rows, cols);
+            L = IdentityMatrix(RowCount, ColumnCount);
             U = Duplicate();
 
-            pi = new int[rows];
-            for (int i = 0; i < rows; i++) pi[i] = i;
+            pi = new int[RowCount];
+            for (int i = 0; i < RowCount; i++) pi[i] = i;
 
             double p = 0;
             double pom2;
             int k0 = 0;
             int pom1 = 0;
 
-            for (int k = 0; k < cols - 1; k++)
+            for (int k = 0; k < ColumnCount - 1; k++)
             {
                 p = 0;
-                for (int i = k; i < rows; i++)      // find the row with the biggest pivot
+                for (int i = k; i < RowCount; i++)      // find the row with the biggest pivot
                 {
                     if (Math.Abs(U[i, k]) > p)
                     {
@@ -131,7 +131,7 @@ namespace Simplex.Helper
                 if (p == 0) // samé nuly ve sloupci
                     throw new MException("The matrix is singular!");
 
-                pom1 = pi[k]; pi[k] = pi[k0]; pi[k0] = pom1;    // switch two rows in permutation matrix
+                pom1 = pi[k]; pi[k] = pi[k0]; pi[k0] = pom1;    // switch two RowCount in permutation matrix
 
                 for (int i = 0; i < k; i++)
                 {
@@ -140,15 +140,15 @@ namespace Simplex.Helper
 
                 if (k != k0) detOfP *= -1;
 
-                for (int i = 0; i < cols; i++)                  // Switch rows in U
+                for (int i = 0; i < ColumnCount; i++)                  // Switch RowCount in U
                 {
                     pom2 = U[k, i]; U[k, i] = U[k0, i]; U[k0, i] = pom2;
                 }
 
-                for (int i = k + 1; i < rows; i++)
+                for (int i = k + 1; i < RowCount; i++)
                 {
                     L[i, k] = U[i, k] / U[k, k];
-                    for (int j = k; j < cols; j++)
+                    for (int j = k; j < ColumnCount; j++)
                         U[i, j] = U[i, j] - L[i, k] * U[k, j];
                 }
             }
@@ -156,12 +156,12 @@ namespace Simplex.Helper
 
         public Matrix SolveWith(Matrix v)                        // Function solves Ax = v in confirmity with solution vector "v"
         {
-            if (rows != cols) throw new MException("The matrix is not square!");
-            if (rows != v.rows) throw new MException("Wrong number of results in solution vector!");
+            if (RowCount != ColumnCount) throw new MException("The matrix is not square!");
+            if (RowCount != v.RowCount) throw new MException("Wrong number of results in solution vector!");
             if (L == null) MakeLU();
 
-            Matrix b = new Matrix(rows, 1);
-            for (int i = 0; i < rows; i++) b[i, 0] = v[pi[i], 0];   // switch two items in "v" due to permutation matrix
+            Matrix b = new Matrix(RowCount, 1);
+            for (int i = 0; i < RowCount; i++) b[i, 0] = v[pi[i], 0];   // switch two items in "v" due to permutation matrix
 
             Matrix z = SubsForth(L, b);
             Matrix x = SubsBack(U, z);
@@ -173,38 +173,38 @@ namespace Simplex.Helper
         public void MakeRref()                                    // Function makes reduced echolon form
         {
             int lead = 0;
-            for (int r = 0; r < rows; r++)
+            for (int r = 0; r < RowCount; r++)
             {
-                if (cols <= lead) break;
+                if (ColumnCount <= lead) break;
                 int i = r;
                 while (this[i, lead] == 0)
                 {
                     i++;
-                    if (i == rows)
+                    if (i == RowCount)
                     {
                         i = r;
                         lead++;
-                        if (cols == lead)
+                        if (ColumnCount == lead)
                         {
                             lead--;
                             break;
                         }
                     }
                 }
-                for (int j = 0; j < cols; j++)
+                for (int j = 0; j < ColumnCount; j++)
                 {
                     double temp = this[r, j];
                     this[r, j] = this[i, j];
                     this[i, j] = temp;
                 }
                 double div = this[r, lead];
-                for (int j = 0; j < cols; j++) this[r, j] /= div;
-                for (int j = 0; j < rows; j++)
+                for (int j = 0; j < ColumnCount; j++) this[r, j] /= div;
+                for (int j = 0; j < RowCount; j++)
                 {
                     if (j != r)
                     {
                         double sub = this[j, lead];
-                        for (int k = 0; k < cols; k++) this[j, k] -= (sub * this[r, k]);
+                        for (int k = 0; k < ColumnCount; k++) this[j, k] -= (sub * this[r, k]);
                     }
                 }
                 lead++;
@@ -215,11 +215,11 @@ namespace Simplex.Helper
         {
             if (L == null) MakeLU();
 
-            Matrix inv = new Matrix(rows, cols);
+            Matrix inv = new Matrix(RowCount, ColumnCount);
 
-            for (int i = 0; i < rows; i++)
+            for (int i = 0; i < RowCount; i++)
             {
-                Matrix Ei = Matrix.ZeroMatrix(rows, 1);
+                Matrix Ei = Matrix.ZeroMatrix(RowCount, 1);
                 Ei[i, 0] = 1;
                 Matrix col = SolveWith(Ei);
                 inv.SetCol(col, i);
@@ -232,7 +232,7 @@ namespace Simplex.Helper
         {
             if (L == null) MakeLU();
             double det = detOfP;
-            for (int i = 0; i < rows; i++) det *= U[i, i];
+            for (int i = 0; i < RowCount; i++) det *= U[i, i];
             return det;
         }
 
@@ -240,16 +240,16 @@ namespace Simplex.Helper
         {
             if (L == null) MakeLU();
 
-            Matrix matrix = ZeroMatrix(rows, cols);
-            for (int i = 0; i < rows; i++) matrix[pi[i], i] = 1;
+            Matrix matrix = ZeroMatrix(RowCount, ColumnCount);
+            for (int i = 0; i < RowCount; i++) matrix[pi[i], i] = 1;
             return matrix;
         }
 
         public Matrix Duplicate()                   // Function returns the copy of this matrix
         {
-            Matrix matrix = new Matrix(rows, cols);
-            for (int i = 0; i < rows; i++)
-                for (int j = 0; j < cols; j++)
+            Matrix matrix = new Matrix(RowCount, ColumnCount);
+            for (int i = 0; i < RowCount; i++)
+                for (int j = 0; j < ColumnCount; j++)
                     matrix[i, j] = this[i, j];
             return matrix;
         }
@@ -257,7 +257,7 @@ namespace Simplex.Helper
         public static Matrix SubsForth(Matrix A, Matrix b)          // Function solves Ax = b for A as a lower triangular matrix
         {
             if (A.L == null) A.MakeLU();
-            int n = A.rows;
+            int n = A.RowCount;
             Matrix x = new Matrix(n, 1);
 
             for (int i = 0; i < n; i++)
@@ -272,7 +272,7 @@ namespace Simplex.Helper
         public static Matrix SubsBack(Matrix A, Matrix b)           // Function solves Ax = b for A as an upper triangular matrix
         {
             if (A.L == null) A.MakeLU();
-            int n = A.rows;
+            int n = A.RowCount;
             Matrix x = new Matrix(n, 1);
 
             for (int i = n - 1; i > -1; i--)
@@ -314,14 +314,14 @@ namespace Simplex.Helper
         public static Matrix Parse(string ps)                        // Function parses the matrix from string
         {
             string s = NormalizeMatrixString(ps);
-            string[] rows = Regex.Split(s, "\r\n");
-            string[] nums = rows[0].Split(' ');
-            Matrix matrix = new Matrix(rows.Length, nums.Length);
+            string[] RowCount = Regex.Split(s, "\r\n");
+            string[] nums = RowCount[0].Split(' ');
+            Matrix matrix = new Matrix(RowCount.Length, nums.Length);
             try
             {
-                for (int i = 0; i < rows.Length; i++)
+                for (int i = 0; i < RowCount.Length; i++)
                 {
-                    nums = rows[i].Split(' ');
+                    nums = RowCount[i].Split(' ');
                     for (int j = 0; j < nums.Length; j++) matrix[i, j] = double.Parse(nums[j]);
                 }
             }
@@ -332,9 +332,9 @@ namespace Simplex.Helper
         public override string ToString()                           // Function returns matrix as a string
         {
             StringBuilder s = new StringBuilder();
-            for (int i = 0; i < rows; i++)
+            for (int i = 0; i < RowCount; i++)
             {
-                for (int j = 0; j < cols; j++)
+                for (int j = 0; j < ColumnCount; j++)
                     s.Append(String.Format("{0,5:E2}", this[i, j]) + " ");
                 s.AppendLine();
             }
@@ -343,16 +343,16 @@ namespace Simplex.Helper
 
         public static Matrix Transpose(Matrix m)              // Matrix transpose, for any rectangular matrix
         {
-            Matrix t = new Matrix(m.cols, m.rows);
-            for (int i = 0; i < m.rows; i++)
-                for (int j = 0; j < m.cols; j++)
+            Matrix t = new Matrix(m.ColumnCount, m.RowCount);
+            for (int i = 0; i < m.RowCount; i++)
+                for (int j = 0; j < m.ColumnCount; j++)
                     t[j, i] = m[i, j];
             return t;
         }
 
         public static Matrix Power(Matrix m, int pow)           // Power matrix to exponent
         {
-            if (pow == 0) return IdentityMatrix(m.rows, m.cols);
+            if (pow == 0) return IdentityMatrix(m.RowCount, m.ColumnCount);
             if (pow == 1) return m.Duplicate();
             if (pow == -1) return m.Invert();
 
@@ -360,7 +360,7 @@ namespace Simplex.Helper
             if (pow < 0) { x = m.Invert(); pow *= -1; }
             else x = m.Duplicate();
 
-            Matrix ret = IdentityMatrix(m.rows, m.cols);
+            Matrix ret = IdentityMatrix(m.RowCount, m.ColumnCount);
             while (pow != 0)
             {
                 if ((pow & 1) == 1) ret *= x;
@@ -372,62 +372,62 @@ namespace Simplex.Helper
 
         private static void SafeAplusBintoC(Matrix A, int xa, int ya, Matrix B, int xb, int yb, Matrix C, int size)
         {
-            for (int i = 0; i < size; i++)          // rows
-                for (int j = 0; j < size; j++)     // cols
+            for (int i = 0; i < size; i++)          // RowCount
+                for (int j = 0; j < size; j++)     // ColumnCount
                 {
                     C[i, j] = 0;
-                    if (xa + j < A.cols && ya + i < A.rows) C[i, j] += A[ya + i, xa + j];
-                    if (xb + j < B.cols && yb + i < B.rows) C[i, j] += B[yb + i, xb + j];
+                    if (xa + j < A.ColumnCount && ya + i < A.RowCount) C[i, j] += A[ya + i, xa + j];
+                    if (xb + j < B.ColumnCount && yb + i < B.RowCount) C[i, j] += B[yb + i, xb + j];
                 }
         }
 
         private static void SafeAminusBintoC(Matrix A, int xa, int ya, Matrix B, int xb, int yb, Matrix C, int size)
         {
-            for (int i = 0; i < size; i++)          // rows
-                for (int j = 0; j < size; j++)     // cols
+            for (int i = 0; i < size; i++)          // RowCount
+                for (int j = 0; j < size; j++)     // ColumnCount
                 {
                     C[i, j] = 0;
-                    if (xa + j < A.cols && ya + i < A.rows) C[i, j] += A[ya + i, xa + j];
-                    if (xb + j < B.cols && yb + i < B.rows) C[i, j] -= B[yb + i, xb + j];
+                    if (xa + j < A.ColumnCount && ya + i < A.RowCount) C[i, j] += A[ya + i, xa + j];
+                    if (xb + j < B.ColumnCount && yb + i < B.RowCount) C[i, j] -= B[yb + i, xb + j];
                 }
         }
 
         private static void SafeACopytoC(Matrix A, int xa, int ya, Matrix C, int size)
         {
-            for (int i = 0; i < size; i++)          // rows
-                for (int j = 0; j < size; j++)     // cols
+            for (int i = 0; i < size; i++)          // RowCount
+                for (int j = 0; j < size; j++)     // ColumnCount
                 {
                     C[i, j] = 0;
-                    if (xa + j < A.cols && ya + i < A.rows) C[i, j] += A[ya + i, xa + j];
+                    if (xa + j < A.ColumnCount && ya + i < A.RowCount) C[i, j] += A[ya + i, xa + j];
                 }
         }
 
         private static void AplusBintoC(Matrix A, int xa, int ya, Matrix B, int xb, int yb, Matrix C, int size)
         {
-            for (int i = 0; i < size; i++)          // rows
+            for (int i = 0; i < size; i++)          // RowCount
                 for (int j = 0; j < size; j++) C[i, j] = A[ya + i, xa + j] + B[yb + i, xb + j];
         }
 
         private static void AminusBintoC(Matrix A, int xa, int ya, Matrix B, int xb, int yb, Matrix C, int size)
         {
-            for (int i = 0; i < size; i++)          // rows
+            for (int i = 0; i < size; i++)          // RowCount
                 for (int j = 0; j < size; j++) C[i, j] = A[ya + i, xa + j] - B[yb + i, xb + j];
         }
 
         private static void ACopytoC(Matrix A, int xa, int ya, Matrix C, int size)
         {
-            for (int i = 0; i < size; i++)          // rows
+            for (int i = 0; i < size; i++)          // RowCount
                 for (int j = 0; j < size; j++) C[i, j] = A[ya + i, xa + j];
         }
 
         // TODO assume matrix 2^N x 2^N and then directly call StrassenMultiplyRun(A,B,?,1,?)
         private static Matrix StrassenMultiply(Matrix A, Matrix B)                // Smart matrix multiplication
         {
-            if (A.cols != B.rows) throw new MException("Wrong dimension of matrix!");
+            if (A.ColumnCount != B.RowCount) throw new MException("Wrong dimension of matrix!");
 
             Matrix R;
 
-            int msize = Math.Max(Math.Max(A.rows, A.cols), Math.Max(B.rows, B.cols));
+            int msize = Math.Max(Math.Max(A.RowCount, A.ColumnCount), Math.Max(B.RowCount, B.ColumnCount));
 
             int size = 1; int n = 0;
             while (msize > size) { size *= 2; n++; };
@@ -444,7 +444,7 @@ namespace Simplex.Helper
              */
 
             int z;
-            for (int i = 0; i < n - 4; i++)          // rows
+            for (int i = 0; i < n - 4; i++)          // RowCount
             {
                 z = (int)Math.Pow(2, n - i - 1);
                 for (int j = 0; j < 9; j++) mField[i, j] = new Matrix(z, z);
@@ -478,33 +478,33 @@ namespace Simplex.Helper
             SafeAplusBintoC(B, 0, h, B, h, h, mField[0, 1], h);
             StrassenMultiplyRun(mField[0, 0], mField[0, 1], mField[0, 1 + 7], 1, mField); // (A12 - A22) * (B21 + B22);
 
-            R = new Matrix(A.rows, B.cols);                  // result
+            R = new Matrix(A.RowCount, B.ColumnCount);                  // result
 
             /// C11
-            for (int i = 0; i < Math.Min(h, R.rows); i++)          // rows
-                for (int j = 0; j < Math.Min(h, R.cols); j++)     // cols
+            for (int i = 0; i < Math.Min(h, R.RowCount); i++)          // RowCount
+                for (int j = 0; j < Math.Min(h, R.ColumnCount); j++)     // ColumnCount
                     R[i, j] = mField[0, 1 + 1][i, j] + mField[0, 1 + 4][i, j] - mField[0, 1 + 5][i, j] + mField[0, 1 + 7][i, j];
 
             /// C12
-            for (int i = 0; i < Math.Min(h, R.rows); i++)          // rows
-                for (int j = h; j < Math.Min(2 * h, R.cols); j++)     // cols
+            for (int i = 0; i < Math.Min(h, R.RowCount); i++)          // RowCount
+                for (int j = h; j < Math.Min(2 * h, R.ColumnCount); j++)     // ColumnCount
                     R[i, j] = mField[0, 1 + 3][i, j - h] + mField[0, 1 + 5][i, j - h];
 
             /// C21
-            for (int i = h; i < Math.Min(2 * h, R.rows); i++)          // rows
-                for (int j = 0; j < Math.Min(h, R.cols); j++)     // cols
+            for (int i = h; i < Math.Min(2 * h, R.RowCount); i++)          // RowCount
+                for (int j = 0; j < Math.Min(h, R.ColumnCount); j++)     // ColumnCount
                     R[i, j] = mField[0, 1 + 2][i - h, j] + mField[0, 1 + 4][i - h, j];
 
             /// C22
-            for (int i = h; i < Math.Min(2 * h, R.rows); i++)          // rows
-                for (int j = h; j < Math.Min(2 * h, R.cols); j++)     // cols
+            for (int i = h; i < Math.Min(2 * h, R.RowCount); i++)          // RowCount
+                for (int j = h; j < Math.Min(2 * h, R.ColumnCount); j++)     // ColumnCount
                     R[i, j] = mField[0, 1 + 1][i - h, j - h] - mField[0, 1 + 2][i - h, j - h] + mField[0, 1 + 3][i - h, j - h] + mField[0, 1 + 6][i - h, j - h];
 
             return R;
         }
         private static void StrassenMultiplyRun(Matrix A, Matrix B, Matrix C, int l, Matrix[,] f)    // A * B into C, level of recursion, matrix field
         {
-            int size = A.rows;
+            int size = A.RowCount;
             int h = size / 2;
 
             AplusBintoC(A, 0, 0, A, h, h, f[l, 0], h);
@@ -536,41 +536,41 @@ namespace Simplex.Helper
             StrassenMultiplyRun(f[l, 0], f[l, 1], f[l, 1 + 7], l + 1, f); // (A12 - A22) * (B21 + B22);
 
             /// C11
-            for (int i = 0; i < h; i++)          // rows
-                for (int j = 0; j < h; j++)     // cols
+            for (int i = 0; i < h; i++)          // RowCount
+                for (int j = 0; j < h; j++)     // ColumnCount
                     C[i, j] = f[l, 1 + 1][i, j] + f[l, 1 + 4][i, j] - f[l, 1 + 5][i, j] + f[l, 1 + 7][i, j];
 
             /// C12
-            for (int i = 0; i < h; i++)          // rows
-                for (int j = h; j < size; j++)     // cols
+            for (int i = 0; i < h; i++)          // RowCount
+                for (int j = h; j < size; j++)     // ColumnCount
                     C[i, j] = f[l, 1 + 3][i, j - h] + f[l, 1 + 5][i, j - h];
 
             /// C21
-            for (int i = h; i < size; i++)          // rows
-                for (int j = 0; j < h; j++)     // cols
+            for (int i = h; i < size; i++)          // RowCount
+                for (int j = 0; j < h; j++)     // ColumnCount
                     C[i, j] = f[l, 1 + 2][i - h, j] + f[l, 1 + 4][i - h, j];
 
             /// C22
-            for (int i = h; i < size; i++)          // rows
-                for (int j = h; j < size; j++)     // cols
+            for (int i = h; i < size; i++)          // RowCount
+                for (int j = h; j < size; j++)     // ColumnCount
                     C[i, j] = f[l, 1 + 1][i - h, j - h] - f[l, 1 + 2][i - h, j - h] + f[l, 1 + 3][i - h, j - h] + f[l, 1 + 6][i - h, j - h];
         }
         private static Matrix StupidMultiply(Matrix m1, Matrix m2)                  // Stupid matrix multiplication
         {
-            if (m1.cols != m2.rows) throw new MException("Wrong dimensions of matrix!");
+            if (m1.ColumnCount != m2.RowCount) throw new MException("Wrong dimensions of matrix!");
 
-            Matrix result = ZeroMatrix(m1.rows, m2.cols);
-            for (int i = 0; i < result.rows; i++)
-                for (int j = 0; j < result.cols; j++)
-                    for (int k = 0; k < m1.cols; k++)
+            Matrix result = ZeroMatrix(m1.RowCount, m2.ColumnCount);
+            for (int i = 0; i < result.RowCount; i++)
+                for (int j = 0; j < result.ColumnCount; j++)
+                    for (int k = 0; k < m1.ColumnCount; k++)
                         result[i, j] += m1[i, k] * m2[k, j];
             return result;
         }
 
         private static Matrix Multiply(Matrix m1, Matrix m2)                         // Matrix multiplication
         {
-            if (m1.cols != m2.rows) throw new MException("Wrong dimension of matrix!");
-            int msize = Math.Max(Math.Max(m1.rows, m1.cols), Math.Max(m2.rows, m2.cols));
+            if (m1.ColumnCount != m2.RowCount) throw new MException("Wrong dimension of matrix!");
+            int msize = Math.Max(Math.Max(m1.RowCount, m1.ColumnCount), Math.Max(m2.RowCount, m2.ColumnCount));
             // stupid multiplication faster for small matrices
             if (msize < 32)
             {
@@ -581,7 +581,7 @@ namespace Simplex.Helper
                 return StupidMultiply(m1, m2);
             }
             // Strassen multiplication is faster for large square matrix 2^N x 2^N
-            // NOTE because of previous checks msize == m1.cols == m1.rows == m2.cols == m2.cols
+            // NOTE because of previous checks msize == m1.ColumnCount == m1.RowCount == m2.ColumnCount == m2.ColumnCount
             double exponent = Math.Log(msize) / Math.Log(2);
             if (Math.Pow(2,exponent) == msize) {
                 return StrassenMultiply(m1, m2);
@@ -591,18 +591,18 @@ namespace Simplex.Helper
         }
         private static Matrix Multiply(double n, Matrix m)                          // Multiplication by constant n
         {
-            Matrix r = new Matrix(m.rows, m.cols);
-            for (int i = 0; i < m.rows; i++)
-                for (int j = 0; j < m.cols; j++)
+            Matrix r = new Matrix(m.RowCount, m.ColumnCount);
+            for (int i = 0; i < m.RowCount; i++)
+                for (int j = 0; j < m.ColumnCount; j++)
                     r[i, j] = m[i, j] * n;
             return r;
         }
         private static Matrix Add(Matrix m1, Matrix m2)         // Sčítání matic
         {
-            if (m1.rows != m2.rows || m1.cols != m2.cols) throw new MException("Matrices must have the same dimensions!");
-            Matrix r = new Matrix(m1.rows, m1.cols);
-            for (int i = 0; i < r.rows; i++)
-                for (int j = 0; j < r.cols; j++)
+            if (m1.RowCount != m2.RowCount || m1.ColumnCount != m2.ColumnCount) throw new MException("Matrices must have the same dimensions!");
+            Matrix r = new Matrix(m1.RowCount, m1.ColumnCount);
+            for (int i = 0; i < r.RowCount; i++)
+                for (int j = 0; j < r.ColumnCount; j++)
                     r[i, j] = m1[i, j] + m2[i, j];
             return r;
         }

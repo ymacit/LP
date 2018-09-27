@@ -33,7 +33,7 @@ namespace Simplex.Analysis
             ConstarintMatrix = basemodel.ConstarintMatrix;
             RightHandMatrix = basemodel.RightHandMatrix;
             ObjectiveMatrix = basemodel.ObjectiveMatrix;
-            PhaseOneObjectiveMatrix = basemodel.PhaseOneObjectiveMatrix;
+            ArtificialObjectiveMatrix = basemodel.ArtificialObjectiveMatrix;
             VarTypes = basemodel.VarTypes;
         }
 

@@ -12,11 +12,6 @@
     <Compile Remove="Helper\MatrixUtil.cs" />
     <Compile Remove="Helper\MatrixUtil_ms.cs" />
     <Compile Remove="Helper\Matrix_ms.cs" />
-    <Compile Remove="Problem\ObjectiveFunction.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Problem\" />
   </ItemGroup>
 
 </Project>
