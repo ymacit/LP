@@ -46,6 +46,12 @@ namespace Simplex.Enums
         Maximum = 1,
     }
 
+    public enum SolverType
+    {
+        Regular=0,
+        Revised=1
+    }
+
     public enum lpsolve_constr_types
     {
         LE = 1,

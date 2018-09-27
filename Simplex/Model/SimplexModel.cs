@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Text;
 using Simplex.Enums;
 
-namespace Simplex.Problem
+namespace Simplex.Model
 {
     [Serializable]
     public class SimplexModel
@@ -35,5 +35,11 @@ namespace Simplex.Problem
             get { return m_subjects; }
             set { m_subjects = value; }
         }
+    }
+
+    public struct TestMessage
+    {
+        public Exception Exception { get; set; }
+        public string Message { get; set; }
     }
 }

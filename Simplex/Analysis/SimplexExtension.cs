@@ -11,7 +11,7 @@ using System.Text;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
-using Simplex.Problem;
+using Simplex.Model;
 using Simplex.Enums;
 using Simplex.Helper;
 
@@ -185,7 +185,7 @@ namespace Simplex.Analysis
             }
             System.Diagnostics.Debug.WriteLine("*********************************");
         }
-        public static void PhaseOnePrintMatrix(this StandartSimplexModel model)
+        internal static void PhaseOnePrintMatrix(this StandartSimplexModel model)
         {
             PrintMatrix((SimplexModel)model);
 
@@ -256,7 +256,7 @@ namespace Simplex.Analysis
             }
         }
 
-        public static void CreatePhaseOneObjective(this StandartSimplexModel model, bool regularSimplex)
+        internal static void CreatePhaseOneObjective(this StandartSimplexModel model, bool regularSimplex)
         {
             //Steps
             //#.Modify the constraints so that the RHS of each constraint is nonnegative (This requires that each constraint with a negative RHS be multiplied by - 1.Remember that if you multiply an inequality by any negative number, the direction of the inequality is reversed!). After modification, identify each constraint as a ≤, ≥ or = constraint.
@@ -355,7 +355,7 @@ namespace Simplex.Analysis
         //    return new Matrix(matrixArray);
         //}
 
-        public static void TruncatePhaseResult(this StandartSimplexModel model, Solution solution)
+        internal static void TruncatePhaseResult(this StandartSimplexModel model, Solution solution)
         {
             //transfer the phaseoneobjective function factors
             List<int> tmp_RemoveArtficialIndex = new List<int>();
@@ -562,7 +562,7 @@ namespace Simplex.Analysis
             model.ConstarintMatrix = tmp_constarintMatrix;
         }
 
-        public static void CreateMatrixSet(this StandartSimplexModel model)
+        internal static void CreateMatrixSet(this StandartSimplexModel model)
         {
             int rowCount = model.Subjects.Count;
             int columnCount = model.ObjectiveFunction.Terms.Count;
@@ -611,7 +611,7 @@ namespace Simplex.Analysis
 
         }
 
-        public static void GenerateBasisMatrices(this RevisedSimplexModel model)
+        internal static void GenerateBasisMatrices(this RevisedSimplexModel model)
         {
 
             /*
@@ -720,12 +720,6 @@ namespace Simplex.Analysis
 
             model.VarTypes = tmp_types;
         }
-    }
-
-    public struct TestMessage
-    {
-        public Exception Exception { get; set; }
-        public string Message { get; set; }
     }
 
     public class TermComparer : IComparer<Term>

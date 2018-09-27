@@ -34,37 +34,20 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Simplex.Enums;
-using Simplex.Problem;
+using Simplex.Model;
 
 namespace Simplex.Analysis
 {
-    public class RegularSolver:SolverBase
+    public class PrimalSolutionBuilder:SolverBase, ISolutionBuilder
     {
-
-        public override Solution Solve(SimplexModel simplexModel)
-        {
-
-            Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
-            StandartSimplexModel phasemodel = new StandartSimplexModel(simplexModel);
-
-            if (phasemodel.IsTwoPhase)
-                tmp_solution = SolveTwoPhase(phasemodel);
-            else
-                tmp_solution = SolveStandart(phasemodel);
-
-            //initial table mut be contain nXn unit matrix that consist of basic varibales ( slack + artificial not original and excess) for feaseble solution
-            //for feaseble solution, all of rhs values must be positive or zero and Z must be zero after all iteration 
-            return tmp_solution;
-        }
+        private SimplexModel m_BaseModel = null;
+        private StandartSimplexModel m_StandartModel = null;
 
         private Solution SolveTwoPhase(StandartSimplexModel simplexModel)
         {
             Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
             simplexModel.CurrentPhase = 1;
-            simplexModel.ConvertStandardModel();
             simplexModel.PrintMatrix();
-            simplexModel.CreatePhaseOneObjective(true);
-            simplexModel.CreateMatrixSet();
             //1) Solve the matrix for phase I 
             /*
              * Steps
@@ -79,7 +62,7 @@ namespace Simplex.Analysis
             //Solving the Phase I LP will result in one of the following three cases:
             //I.Case : If w = 0 
             //TODO test //tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0) - 1, 0] = 0;
-            if (tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0)-1, 0] <= m_epsilon)
+            if (simplexModel.RightHandMatrix[simplexModel.RightHandMatrix.GetLength(0)-1, 0] <= m_epsilon)
             {
                 simplexModel.CurrentPhase = 2;
 
@@ -231,8 +214,38 @@ namespace Simplex.Analysis
                 tmp_iteration++;
                 //break;
             }
-            tmp_solution.ObjectiveMatrix = objective;
-            tmp_solution.RightHandValues = RightHandValues;
+            return tmp_solution;
+        }
+
+        void ISolutionBuilder.setStandartModel(SimplexModel model)
+        {
+            m_BaseModel=model;
+            m_StandartModel = new StandartSimplexModel(m_BaseModel);
+            m_StandartModel.ConvertStandardModel();
+        }
+
+        void ISolutionBuilder.setPhase()
+        {
+            if (m_StandartModel.IsTwoPhase)
+                m_StandartModel.CreatePhaseOneObjective(true);
+        }
+
+        void ISolutionBuilder.setMatrices()
+        {
+            m_StandartModel.CreateMatrixSet();
+        }
+
+        Solution ISolutionBuilder.getResult()
+        {
+            Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
+
+            if (m_StandartModel.IsTwoPhase)
+                tmp_solution = SolveTwoPhase(m_StandartModel);
+            else
+                tmp_solution = SolveStandart(m_StandartModel);
+
+            //initial table mut be contain nXn unit matrix that consist of basic varibales ( slack + artificial not original and excess) for feaseble solution
+            //for feaseble solution, all of rhs values must be positive or zero and Z must be zero after all iteration 
             return tmp_solution;
         }
     }

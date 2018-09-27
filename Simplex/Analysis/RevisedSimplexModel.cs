@@ -7,13 +7,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Simplex.Problem;
+using Simplex.Model;
 using Simplex.Enums;
 using Simplex.Helper;
 
+
 namespace Simplex.Analysis
 {
-    public class RevisedSimplexModel : StandartSimplexModel
+    internal class RevisedSimplexModel : StandartSimplexModel
     {
         Matrix m_PhaseOneBasisMatrix = null;
         Matrix m_PhaseOneBasisInverse = null;
@@ -27,7 +28,7 @@ namespace Simplex.Analysis
         Matrix m_BasisRightHandMatrix = null;
         Matrix m_BasisObjectiveMatrix = null;
 
-        public RevisedSimplexModel(StandartSimplexModel basemodel):base(basemodel)
+        internal RevisedSimplexModel(StandartSimplexModel basemodel):base(basemodel)
         {
             ConstarintMatrix = basemodel.ConstarintMatrix;
             RightHandMatrix = basemodel.RightHandMatrix;
@@ -36,59 +37,59 @@ namespace Simplex.Analysis
             VarTypes = basemodel.VarTypes;
         }
 
-        public Matrix BasisMatrix
+        internal Matrix BasisMatrix
         {
             get { return m_BasisMatrix; }
             set { m_BasisMatrix = value; }
         }
-        public Matrix BasisInverse
+        internal Matrix BasisInverse
         {
             get { return m_BasisInverse; }
             set { m_BasisInverse = value; }
         }
 
-        public Matrix NonBasisMatrix
+        internal Matrix NonBasisMatrix
         {
             get { return m_NonBasisMatrix; }
             set { m_NonBasisMatrix = value; }
         }
 
-        public Matrix BasisRightHandMatrix
+        internal Matrix BasisRightHandMatrix
         {
             get { return m_BasisRightHandMatrix; }
             set { m_BasisRightHandMatrix = value; }
         }
 
-        public Matrix BasisObjectiveMatrix
+        internal Matrix BasisObjectiveMatrix
         {
             get { return m_BasisObjectiveMatrix; }
             set { m_BasisObjectiveMatrix = value; }
         }
 
-        public Matrix PhaseOneBasisMatrix
+        internal Matrix PhaseOneBasisMatrix
         {
             get { return m_PhaseOneBasisMatrix; }
             set { m_PhaseOneBasisMatrix = value; }
         }
-        public Matrix PhaseOneBasisInverse
+        internal Matrix PhaseOneBasisInverse
         {
             get { return m_PhaseOneBasisInverse; }
             set { m_PhaseOneBasisInverse = value; }
         }
 
-        public Matrix PhaseOneNonBasisMatrix
+        internal Matrix PhaseOneNonBasisMatrix
         {
             get { return m_PhaseOneNonBasisMatrix; }
             set { m_PhaseOneNonBasisMatrix = value; }
         }
 
-        public Matrix PhaseOneBasisRightHandMatrix
+        internal Matrix PhaseOneBasisRightHandMatrix
         {
             get { return m_PhaseOneBasisRightHandMatrix; }
             set { m_PhaseOneBasisRightHandMatrix = value; }
         }
 
-        public Matrix PhaseOneBasisObjectiveMatrix
+        internal Matrix PhaseOneBasisObjectiveMatrix
         {
             get { return m_PhaseOneBasisObjectiveMatrix; }
             set { m_PhaseOneBasisObjectiveMatrix = value; }

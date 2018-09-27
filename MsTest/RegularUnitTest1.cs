@@ -1,8 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Simplex.Problem;
+using Simplex.Model;
 using Simplex.Enums;
 using Simplex.Analysis;
 using Simplex.Helper;
+
 
 namespace MsTest
 {
@@ -11,27 +12,7 @@ namespace MsTest
     {
         private const int m_digitRound = 3;
         private const string m_doubleFormat = "F3";
-
-        [TestMethod]
-        public void MatrixDeterminant_Test()
-        {
-            double[,] tmp_array = new double[2, 2] { { 4, 8 }, { 7, -2 } };
-            Matrix tmp_matrix = new Matrix(tmp_array);
-            double det = tmp_matrix.Det();
-            Matrix inv = tmp_matrix.Invert();
-            Matrix tpose = Matrix.Transpose(tmp_matrix);
-            Assert.IsNull(tmp_matrix, "success");
-        }
-
-        [TestMethod]
-        public void MatrixUnit_Test()
-        {
-            double[] tmp_array = new double[3] { 0, 0, 0 };
-            Matrix tmp_matrix = new Matrix(tmp_array);
-            Matrix inv = tmp_matrix.Invert();
-            Matrix tpose = Matrix.Transpose(tmp_matrix);
-            Assert.IsNull(tmp_matrix, "success");
-        }
+        private const SolverType m_SolverType = SolverType.Regular;
 
         [TestMethod]
         public void SimplexModel_Copy_Test()
@@ -53,14 +34,18 @@ namespace MsTest
         }
 
         [TestMethod]
+        public void SolveRegularSimplexModel1_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel1();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
         public void StandartSimplexModel2_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel2();
-            SimplexModel standartModel = simplex.DeepCopy();
-            StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
-            RegularSolver tmp_solver = new RegularSolver();
-            Solution tmp_solution = tmp_solver.Solve(phasemodel);
-            PrintResult(tmp_solution, phasemodel);
+            Solution tmp_solution = SolveProblem(simplex);
             Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
         }
 
@@ -68,23 +53,7 @@ namespace MsTest
         public void SolveRegularTwoPhasesSimplexModel3_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel3();
-            SimplexModel standartModel = simplex.DeepCopy();
-            StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
-            RegularSolver tmp_solver = new RegularSolver();
-            Solution tmp_solution = tmp_solver.Solve(phasemodel);
-            PrintResult(tmp_solution, phasemodel);
-            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
-        }
-
-        [TestMethod]
-        public void SolveRegularSimplexModel1_Test()
-        {
-            SimplexModel simplex = TestHelper.CreateSimplexModel1();
-            SimplexModel standartModel = simplex.DeepCopy();
-            StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
-            RegularSolver tmp_solver = new RegularSolver();
-            Solution tmp_solution = tmp_solver.Solve(phasemodel);
-            PrintResult(tmp_solution, phasemodel);
+            Solution tmp_solution = SolveProblem(simplex);
             Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
         }
 
@@ -92,11 +61,7 @@ namespace MsTest
         public void SolveRegularSimplexModel4_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel4();
-            SimplexModel standartModel = simplex.DeepCopy();
-            StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
-            RegularSolver tmp_solver = new RegularSolver();
-            Solution tmp_solution = tmp_solver.Solve(phasemodel);
-            PrintResult(tmp_solution, phasemodel);
+            Solution tmp_solution = SolveProblem(simplex);
             Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
         }
 
@@ -104,11 +69,7 @@ namespace MsTest
         public void SolveRegularSimplexModel5_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel5();
-            SimplexModel standartModel = simplex.DeepCopy();
-            StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
-            RegularSolver tmp_solver = new RegularSolver();
-            Solution tmp_solution = tmp_solver.Solve(phasemodel);
-            PrintResult(tmp_solution, phasemodel);
+            Solution tmp_solution = SolveProblem(simplex);
             Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
         }
 
@@ -116,21 +77,28 @@ namespace MsTest
         public void SolveRegularSimplexModel6_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel6();
-            SimplexModel standartModel = simplex.DeepCopy();
-            StandartSimplexModel phasemodel = new StandartSimplexModel(standartModel);
-            RegularSolver tmp_solver = new RegularSolver();
-            Solution tmp_solution = tmp_solver.Solve(phasemodel);
-            PrintResult(tmp_solution, phasemodel);
+            Solution tmp_solution = SolveProblem(simplex);
             Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
         }
 
-        private void PrintResult(Solution solution, StandartSimplexModel simplexModel)
+        private Solution SolveProblem(SimplexModel model)
+        {
+            Solution tmp_solution = null;
+            SimplexModel standartModel = model.DeepCopy();
+            SolutionBuildDirector tmp_Direcor = new SolutionBuildDirector(m_SolverType, standartModel);
+            tmp_Direcor.Construct();
+            tmp_solution = tmp_Direcor.SolutionBuilder.getResult();
+            PrintResult(tmp_solution, standartModel);
+            return tmp_solution;
+        }
+
+        private void PrintResult(Solution solution, SimplexModel simplexModel)
         {
             if (solution.Quality == SolutionQuality.Optimal)
             {
                 System.Diagnostics.Debug.WriteLine("*************************");
                 System.Diagnostics.Debug.WriteLine("***         Solution");
-                System.Diagnostics.Debug.WriteLine("***         Optimal Value :" + simplexModel.RightHandMatrix[simplexModel.Subjects.Count, 0].ToString(m_doubleFormat) + "***".PadLeft(15));
+                System.Diagnostics.Debug.WriteLine("***         Optimal Value :" + solution.ResultValue.ToString(m_doubleFormat) + "***".PadLeft(15));
                 foreach (ResultTerm term in solution.Results)
                 {
                     string tmp_sign = string.Empty;

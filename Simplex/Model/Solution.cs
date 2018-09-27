@@ -12,22 +12,19 @@ using System.Collections.Generic;
 using System.Text;
 using Simplex.Enums;
 
-namespace Simplex.Analysis
+namespace Simplex.Model
 {
     [Serializable]
     public class Solution
     {
+        
         public Solution()
         {
             Results = new List<ResultTerm>();
         }
 
         public List<ResultTerm> Results { get; set; }
-
-        /// <summary>
-        /// The optimal value of the objective function.
-        /// </summary>
-        public double[,] RightHandValues { get; set; }
+        public Double ResultValue { get; set; }
 
         /// <summary>
         /// Set true if alternate solutions exist.
@@ -38,8 +35,6 @@ namespace Simplex.Analysis
         /// The quality of the solution: optimal, infeasible, etc.
         /// </summary>
         public SolutionQuality Quality { get; set; }
-
-        public double[] ObjectiveMatrix { get; set; }
 
     }
 

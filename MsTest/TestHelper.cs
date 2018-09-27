@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Simplex.Problem;
+using Simplex.Model;
 using Simplex.Enums;
 using Simplex.Analysis;
 using Simplex.Helper;

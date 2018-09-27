@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Simplex.Enums;
 
-namespace Simplex.Analysis
+namespace Simplex.Model
 {
     [Serializable]
     public class ResultTerm

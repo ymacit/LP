@@ -35,36 +35,22 @@ using System.Collections.Generic;
 using System.Text;
 using Simplex.Enums;
 using Simplex.Helper;
-using Simplex.Problem;
+using Simplex.Model;
 
 namespace Simplex.Analysis
 {
-    public class RevisedSolver : SolverBase
+    public class RevisedSolutionBuilder : SolverBase, ISolutionBuilder
     {
 
-        public  override Solution Solve(SimplexModel simplexModel)
-        {
-            Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
-            StandartSimplexModel phasemodel = new StandartSimplexModel(simplexModel);
-            RevisedSimplexModel revisedModel = new RevisedSimplexModel(phasemodel);
-
-            if (phasemodel.IsTwoPhase)
-                tmp_solution = SolveTwoPhase(revisedModel);
-            else
-                tmp_solution = Solve(revisedModel.VarTypes, VariableType.Original | VariableType.Slack, revisedModel.NonBasisMatrix, revisedModel.BasisObjectiveMatrix, revisedModel.NonBasisMatrix, revisedModel.NonBasisMatrix, revisedModel.BasisRightHandMatrix, false);
-
-            //initial table mut be contain nXn unit matrix that consist of basic varibales ( slack + artificial not original and excess) for feaseble solution
-            //for feaseble solution, all of rhs values must be positive or zero and Z must be zero after all iteration 
-            return tmp_solution;
-        }
+        private SimplexModel m_BaseModel = null;
+        private StandartSimplexModel m_StandartModel = null;
+        private RevisedSimplexModel m_RevisedModel = null;
 
         private Solution SolveTwoPhase(RevisedSimplexModel simplexModel)
         {
             Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
-            simplexModel.ConvertStandardModel();
             simplexModel.PrintMatrix();
-            simplexModel.CreatePhaseOneObjective(false);
-            simplexModel.GenerateBasisMatrices();
+
             //1) Solve the matrix for phase I 
             /*
              * Steps
@@ -79,7 +65,7 @@ namespace Simplex.Analysis
             //Solving the Phase I LP will result in one of the following three cases:
             //I.Case : If w = 0 
             //TODO test //tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0) - 1, 0] = 0;
-            if (tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0)-1, 0] == 0)
+            if (simplexModel.RightHandMatrix[simplexModel.RightHandMatrix.GetLength(0)-1, 0] == 0)
             {
                 //transfer the phaseoneobjective function factors
                 simplexModel.TruncatePhaseResult(tmp_solution);
@@ -210,6 +196,40 @@ namespace Simplex.Analysis
             //tmp_solution.RightHandValues = RightHandValues;
             return tmp_solution;
 
+        }
+
+        void ISolutionBuilder.setStandartModel(SimplexModel model)
+        {
+            m_BaseModel = model;
+            m_StandartModel = new StandartSimplexModel(model);
+            m_RevisedModel = new RevisedSimplexModel(m_StandartModel);
+            m_RevisedModel.ConvertStandardModel();
+        }
+
+        void ISolutionBuilder.setPhase()
+        {
+            if (m_RevisedModel.IsTwoPhase)
+                m_RevisedModel.CreatePhaseOneObjective(false);
+        }
+
+        void ISolutionBuilder.setMatrices()
+        {
+            m_RevisedModel.CreateMatrixSet();
+            m_RevisedModel.GenerateBasisMatrices();
+        }
+
+        Solution ISolutionBuilder.getResult()
+        {
+            Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
+
+            if (m_RevisedModel.IsTwoPhase)
+                tmp_solution = SolveTwoPhase(m_RevisedModel);
+            else
+                tmp_solution = Solve(m_RevisedModel.VarTypes, VariableType.Original | VariableType.Slack, m_RevisedModel.NonBasisMatrix, m_RevisedModel.BasisObjectiveMatrix, m_RevisedModel.NonBasisMatrix, m_RevisedModel.NonBasisMatrix, m_RevisedModel.BasisRightHandMatrix, false);
+
+            //initial table mut be contain nXn unit matrix that consist of basic varibales ( slack + artificial not original and excess) for feaseble solution
+            //for feaseble solution, all of rhs values must be positive or zero and Z must be zero after all iteration 
+            return tmp_solution;
         }
     }
 }

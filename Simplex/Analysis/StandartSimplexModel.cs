@@ -7,12 +7,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Simplex.Problem;
 using Simplex.Enums;
+using Simplex.Model;
 
 namespace Simplex.Analysis
 {
-    public class StandartSimplexModel:SimplexModel
+    internal class StandartSimplexModel:SimplexModel
     {
         Subject m_PhaseOneObjective = new Subject() { RightHandValue = 0, Equality= EquailtyType.Equals };
         TestMessage m_testMessage;
@@ -24,51 +24,51 @@ namespace Simplex.Analysis
         double[] m_PhaseOneObjectiveMatrix = null;
         VariableType[] m_vartypes = null;
 
-        public StandartSimplexModel(SimplexModel basemodel)
+        internal StandartSimplexModel(SimplexModel basemodel)
         {
             base.GoalType = basemodel.GoalType;
             base.ObjectiveFunction = basemodel.ObjectiveFunction;
             base.Subjects = basemodel.Subjects;
             m_testMessage = this.CheckBFS();
         }
-        public Subject PhaseObjectiveFunction
+        internal Subject PhaseObjectiveFunction
         {
             get { return m_PhaseOneObjective; }
             set { m_PhaseOneObjective = value; }
         }
 
-        public bool IsTwoPhase
+        internal bool IsTwoPhase
         {
             get { return m_testMessage.Exception != null; }
         }
 
-        public double[] ObjectiveMatrix
+        internal double[] ObjectiveMatrix
         {
             get { return m_ObjectiveMatrix; }
             set { m_ObjectiveMatrix = value; }
         }
-        public double[,] ConstarintMatrix
+        internal double[,] ConstarintMatrix
         {
             get { return m_ConstarintMatrix; }
             set { m_ConstarintMatrix = value; }
         }
-        public double[,] RightHandMatrix
+        internal double[,] RightHandMatrix
         {
             get { return m_RightHandMatrix; }
             set { m_RightHandMatrix = value; }
         }
-        public double[] PhaseOneObjectiveMatrix
+        internal double[] PhaseOneObjectiveMatrix
         {
             get { return m_PhaseOneObjectiveMatrix; }
             set { m_PhaseOneObjectiveMatrix = value; }
         }
-        public VariableType[] VarTypes
+        internal VariableType[] VarTypes
         {
             get { return m_vartypes; }
             set { m_vartypes = value; }
         }
 
-        public int CurrentPhase
+        internal int CurrentPhase
         {
             get { return m_currentPhase; }
             set { m_currentPhase = value; }

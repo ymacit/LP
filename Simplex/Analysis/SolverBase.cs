@@ -34,7 +34,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Simplex.Enums;
-using Simplex.Problem;
+using Simplex.Model;
 
 namespace Simplex.Analysis
 {
@@ -44,10 +44,8 @@ namespace Simplex.Analysis
         protected const int m_digitRound = 3;
         protected const string m_doubleFormat = "F3";
 
-        public abstract Solution Solve(SimplexModel simplexModel);
         //public abstract Solution Solve(VariableType[] types, VariableType InclusiveTypeBits, double[] objective, double[,] constarints, double[,] RightHandValues, bool MaxEntering);
-
-        protected void PrepareSolutionResult(StandartSimplexModel simplexModel, Solution solution)
+        internal void PrepareSolutionResult(StandartSimplexModel simplexModel, Solution solution)
         {
             //assign the actual value to the result terms
             if (solution.Quality == SolutionQuality.Optimal || solution.Quality == SolutionQuality.Alternative)
@@ -59,6 +57,8 @@ namespace Simplex.Analysis
                     if (tmp_ColIndex != -1 && simplexModel.RightHandMatrix[i, 0] != 0 && simplexModel.ConstarintMatrix[i, tmp_ColIndex] == 1)
                         solution.Results.Add(new ResultTerm() { VarType = simplexModel.ObjectiveFunction.Terms[tmp_ColIndex].VarType, Vector = simplexModel.ObjectiveFunction.Terms[tmp_ColIndex].Vector, Value = simplexModel.RightHandMatrix[i, 0] });
                 }
+
+                solution.ResultValue = simplexModel.RightHandMatrix[simplexModel.ConstarintMatrix.GetLength(0), 0];
             }
         }
 

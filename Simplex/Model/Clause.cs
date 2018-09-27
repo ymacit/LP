@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Simplex.Enums;
 
-namespace Simplex.Problem
+namespace Simplex.Model
 {
     [Serializable]
     public class Clause
