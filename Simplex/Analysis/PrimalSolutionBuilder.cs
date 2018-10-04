@@ -35,6 +35,7 @@ using System.Collections.Generic;
 using System.Text;
 using Simplex.Enums;
 using Simplex.Model;
+using Simplex.Helper;
 
 namespace Simplex.Analysis
 {
@@ -62,7 +63,7 @@ namespace Simplex.Analysis
             //Solving the Phase I LP will result in one of the following three cases:
             //I.Case : If w = 0 
             //TODO test //tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0) - 1, 0] = 0;
-            if (simplexModel.RightHandMatrix[simplexModel.RightHandMatrix.GetLength(0)-1, 0] <= m_epsilon)
+            if (simplexModel.RightHandMatrix[simplexModel.RightHandMatrix.RowCount-1, 0] <= m_epsilon)
             {
                 simplexModel.CurrentPhase = 2;
 
@@ -88,31 +89,31 @@ namespace Simplex.Analysis
                 tmp_solution.Quality = SolutionQuality.Infeasible;
             }
             //assign the actual value to the result terms
-            PrepareSolutionResult(simplexModel, tmp_solution);
+            PrepareSolutionResult(simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.ObjectiveFunction.Terms, tmp_solution);
             return tmp_solution;
         }
 
 
         private Solution SolveStandart(StandartSimplexModel simplexModel)
         {
-            simplexModel.ConvertStandardModel();
+            //simplexModel.ConvertStandardModel();
             simplexModel.PrintMatrix();
-            simplexModel.CreateMatrixSet();
+            //simplexModel.CreateMatrixSet();
             VariableType tmp_inclusive = VariableType.Original | VariableType.Slack;
 
             Solution tmp_solution= Solve( simplexModel.VarTypes, tmp_inclusive, simplexModel.ObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.GoalType == ObjectiveType.Minumum) ;
 
-            PrepareSolutionResult(simplexModel, tmp_solution);
+            PrepareSolutionResult(simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.ObjectiveFunction.Terms, tmp_solution);
 
             return tmp_solution;
 
         }
 
-        private Solution Solve( VariableType[] types, VariableType InclusiveTypeBits, double[] objective, double[,] constarints, double[,] RightHandValues, bool MaxEntering)
+        private Solution Solve( VariableType[] types, VariableType InclusiveTypeBits, Matrix objective, Matrix constarints, Matrix RightHandValues, bool MaxEntering)
         {
             Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
-            PrintMatrix(objective, constarints, RightHandValues, 0);
-            int tmp_ObjectiveLeftValueIndex = RightHandValues.GetLength(0) - 1;
+            PrintMatrix(objective, constarints, RightHandValues.GetCol(0), RightHandValues.GetCol(1), RightHandValues[RightHandValues.RowCount-1,0],  0);
+            int tmp_ObjectiveLeftValueIndex = RightHandValues.RowCount - 1;
             bool tmp_continue = true;
             int tmp_iteration = 1;
             double tmp_pivotValue = 0;
@@ -121,15 +122,15 @@ namespace Simplex.Analysis
             double tmp_MinLeavingValue = double.MaxValue;
             double tmp_MinCalculateValue = 0;
             //Round the matrix values
-            for (int i = 0; i < constarints.GetLength(0); i++)
+            for (int i = 0; i < constarints.RowCount; i++)
             {
-                objective[i] = Math.Round(objective[i], m_digitRound);
-                for (int j = 0; j < constarints.GetLength(1); j++)
+                objective[0,i] = Math.Round(objective[0,i], m_digitRound);
+                for (int j = 0; j < constarints.ColumnCount; j++)
                 {
                     constarints[i, j] = Math.Round(constarints[i , j], m_digitRound);
                 }
             }
-            for (int i = 0; i < RightHandValues.GetLength(0); i++)
+            for (int i = 0; i < RightHandValues.RowCount; i++)
             {
                 RightHandValues[i,0] = Math.Round(RightHandValues[i,0], m_digitRound);
             }
@@ -152,7 +153,7 @@ namespace Simplex.Analysis
                 //2)Calculate the ratio for selected varible all of constarint and select the min value that is grather than 0
                 tmp_PivotRowIndex = -1;
                 tmp_MinLeavingValue = double.MaxValue;
-                for (int i = 0; i < constarints.GetLength(0); i++)
+                for (int i = 0; i < constarints.RowCount; i++)
                 {
                     if (constarints[i, tmp_PivotColIndex] != 0)
                     {
@@ -177,7 +178,7 @@ namespace Simplex.Analysis
                 //4)Calculate new Row (Rn') for selected tmp_PivotRowIndex
                 System.Diagnostics.Debug.WriteLine("**********New Row*********");
                 tmp_pivotValue = constarints[tmp_PivotRowIndex, tmp_PivotColIndex];
-                for (int i = 0; i < constarints.GetLength(1); i++)
+                for (int i = 0; i < constarints.ColumnCount; i++)
                 {
                     constarints[tmp_PivotRowIndex,i] = Math.Round((constarints[tmp_PivotRowIndex, i] / tmp_pivotValue), m_digitRound);
                     System.Diagnostics.Debug.Write(constarints[tmp_PivotRowIndex,i].ToString(m_doubleFormat) + "  ");
@@ -187,22 +188,22 @@ namespace Simplex.Analysis
                 System.Diagnostics.Debug.WriteLine(" = " + RightHandValues[tmp_PivotRowIndex, 0].ToString(m_doubleFormat));
 
                 //5)Calculate new objective Row (Rn') by multiple contraint factor.RO'=RO-xRn'
-                tmp_pivotValue = objective[tmp_PivotColIndex];
-                for (int i = 0; i < objective.Length; i++)
+                tmp_pivotValue = objective[0,tmp_PivotColIndex];
+                for (int i = 0; i < objective.ColumnCount; i++)
                 {
-                    objective[i] = Math.Round( objective[i] - tmp_pivotValue * constarints[tmp_PivotRowIndex, i], m_digitRound);
+                    objective[0,i] = Math.Round( objective[0,i] - tmp_pivotValue * constarints[tmp_PivotRowIndex, i], m_digitRound);
                 }
                 //in addition set the left value 
                 RightHandValues[tmp_ObjectiveLeftValueIndex, 0] = Math.Round(RightHandValues[tmp_ObjectiveLeftValueIndex, 0] - tmp_pivotValue * RightHandValues[tmp_PivotRowIndex,0], m_digitRound) ;
 
                 //6)Calculate new row for other cosntraint rows (Rj'=Rj-xRn')
-                for (int i = 0; i < constarints.GetLength(0); i++)
+                for (int i = 0; i < constarints.RowCount; i++)
                 {
                     if (i == tmp_PivotRowIndex)
                         continue;
 
                     tmp_pivotValue = constarints[i, tmp_PivotColIndex];
-                    for (int j = 0; j < constarints.GetLength(1) ; j++)
+                    for (int j = 0; j < constarints.ColumnCount ; j++)
                     {
                         constarints[i, j] = Math.Round(constarints[i, j]  - tmp_pivotValue * constarints[tmp_PivotRowIndex, j], m_digitRound);
                     }
@@ -210,10 +211,12 @@ namespace Simplex.Analysis
                     RightHandValues[i, 0] = Math.Round(RightHandValues[i, 0] - tmp_pivotValue * RightHandValues[tmp_PivotRowIndex, 0], m_digitRound);
                 }
 
-                PrintMatrix(objective, constarints, RightHandValues, tmp_iteration);
+                PrintMatrix(objective, constarints, RightHandValues.GetCol(0), RightHandValues.GetCol(1), RightHandValues[RightHandValues.RowCount - 1, 0], tmp_iteration);
                 tmp_iteration++;
                 //break;
             }
+
+            tmp_solution.ResultValue = RightHandValues[RightHandValues.RowCount - 1, 0];
             return tmp_solution;
         }
 
@@ -227,7 +230,7 @@ namespace Simplex.Analysis
         void ISolutionBuilder.setPhase()
         {
             if (m_StandartModel.IsTwoPhase)
-                m_StandartModel.CreatePhaseOneObjective(true);
+                m_StandartModel.CreatePhaseOneObjective();
         }
 
         void ISolutionBuilder.setMatrices()

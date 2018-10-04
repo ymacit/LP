@@ -81,6 +81,14 @@ namespace MsTest
             Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
         }
 
+        [TestMethod]
+        public void SolveRevisedSimplexModel7_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel7();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
         private Solution SolveProblem(SimplexModel model)
         {
             Solution tmp_solution = null;

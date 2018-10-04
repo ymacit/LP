@@ -6,9 +6,12 @@
 
   <ItemGroup>
     <Compile Remove="Analysis\PrimalSolutionBuilder - Copy.cs" />
+    <Compile Remove="Analysis\RevisedSimplexExtension_old.cs" />
+    <Compile Remove="Analysis\SimplexExtension.cs" />
     <Compile Remove="Helper\DoubleUtil.cs" />
     <Compile Remove="Helper\DoubleUtil_ms.cs" />
     <Compile Remove="Helper\MatrixHelper.cs" />
+    <Compile Remove="Helper\MatrixHelperx.cs" />
     <Compile Remove="Helper\MatrixUtil.cs" />
     <Compile Remove="Helper\MatrixUtil_ms.cs" />
     <Compile Remove="Helper\Matrix_ms.cs" />

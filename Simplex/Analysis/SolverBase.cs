@@ -35,6 +35,7 @@ using System.Collections.Generic;
 using System.Text;
 using Simplex.Enums;
 using Simplex.Model;
+using Simplex.Helper;
 
 namespace Simplex.Analysis
 {
@@ -45,40 +46,38 @@ namespace Simplex.Analysis
         protected const string m_doubleFormat = "F3";
 
         //public abstract Solution Solve(VariableType[] types, VariableType InclusiveTypeBits, double[] objective, double[,] constarints, double[,] RightHandValues, bool MaxEntering);
-        internal void PrepareSolutionResult(StandartSimplexModel simplexModel, Solution solution)
+        internal void PrepareSolutionResult(Matrix ConstarintMatrix, Matrix RightHandMatrix, List<Term> objectiveFunction,  Solution solution)
         {
             //assign the actual value to the result terms
             if (solution.Quality == SolutionQuality.Optimal || solution.Quality == SolutionQuality.Alternative)
             {
                 int tmp_ColIndex = -1;
-                for (int i = 0; i < simplexModel.ConstarintMatrix.GetLength(0); i++)
+                for (int i = 0; i < RightHandMatrix.RowCount; i++)
                 {
-                    tmp_ColIndex = (int)simplexModel.RightHandMatrix[i, 1];
-                    if (tmp_ColIndex != -1 && simplexModel.RightHandMatrix[i, 0] != 0 && simplexModel.ConstarintMatrix[i, tmp_ColIndex] == 1)
-                        solution.Results.Add(new ResultTerm() { VarType = simplexModel.ObjectiveFunction.Terms[tmp_ColIndex].VarType, Vector = simplexModel.ObjectiveFunction.Terms[tmp_ColIndex].Vector, Value = simplexModel.RightHandMatrix[i, 0] });
+                    tmp_ColIndex = (int)RightHandMatrix[i, 1];
+                    if (tmp_ColIndex != -1 )
+                        solution.Results.Add(new ResultTerm() { VarType = objectiveFunction[tmp_ColIndex].VarType, Vector = objectiveFunction[tmp_ColIndex].Vector, Value = RightHandMatrix[i, 0] });
                 }
-
-                solution.ResultValue = simplexModel.RightHandMatrix[simplexModel.ConstarintMatrix.GetLength(0), 0];
             }
         }
 
-        protected void PrintMatrix(double[] objective, double[,] constarints, double[,] RightHandValues, int iteration)
+        protected void PrintMatrix(Matrix objective, Matrix constarints, Matrix RightHandValues, Matrix basicFlagMatrix, double objectiveCost, int iteration)
         {
             string tmp_sign = string.Empty;
             System.Diagnostics.Debug.WriteLine("*********************************");
             System.Diagnostics.Debug.WriteLine("   İteration " + iteration.ToString());
-            for (int i = 0; i < objective.Length; i++)
+            for (int i = 0; i < objective.ColumnCount; i++)
             {
                 tmp_sign = string.Empty;
-                if (Math.Sign(objective[i]) >= 0)
+                if (Math.Sign(objective[0,i]) >= 0)
                     tmp_sign = "+";
-                System.Diagnostics.Debug.Write(tmp_sign + objective[i].ToString("F3") + " ");
+                System.Diagnostics.Debug.Write(tmp_sign + objective[0,i].ToString("F3") + " ");
             }
-            System.Diagnostics.Debug.WriteLine(" = " + RightHandValues[RightHandValues.GetLength(0) - 1, 0].ToString());
+            System.Diagnostics.Debug.WriteLine(" = " + objectiveCost.ToString());
             System.Diagnostics.Debug.WriteLine("     *******Constarints*****    ");
-            for (int i = 0; i < constarints.GetLength(0); i++)
+            for (int i = 0; i < constarints.RowCount; i++)
             {
-                for (int j = 0; j < constarints.GetLength(1); j++)
+                for (int j = 0; j < constarints.ColumnCount; j++)
                 {
                     tmp_sign = string.Empty;
                     if (Math.Sign(constarints[i, j]) >= 0)
@@ -86,25 +85,25 @@ namespace Simplex.Analysis
                     System.Diagnostics.Debug.Write(tmp_sign + constarints[i, j].ToString("F3") + " ");
                 }
                 System.Diagnostics.Debug.Write(" = " + RightHandValues[i, 0].ToString("F4"));
-                System.Diagnostics.Debug.WriteLine("  | " + RightHandValues[i, 1].ToString());
+                System.Diagnostics.Debug.WriteLine("  | " + basicFlagMatrix[i, 0].ToString());
             }
             System.Diagnostics.Debug.WriteLine("*********************************");
         }
 
-        protected int FindEnteringValueIndex(double[] matrix, VariableType[] types, VariableType InclusiveType, bool MaxEntering)
+        protected int FindEnteringValueIndex(Matrix matrix, VariableType[] types, VariableType InclusiveType, bool MaxEntering)
         {
             int tmp_index = -1;
             double tmp_value = 0;
-            for (int i = 0; i < matrix.Length; i++)
+            for (int i = 0; i < matrix.ColumnCount; i++)
             {
-                if (MaxEntering && matrix[i] > tmp_value && (types[i] == (types[i] & InclusiveType)))
+                if (MaxEntering && matrix[0,i] > tmp_value && (types[i] == (types[i] & InclusiveType)))
                 {
-                    tmp_value = matrix[i];
+                    tmp_value = matrix[0,i];
                     tmp_index = i;
                 }
-                else if (!MaxEntering && matrix[i] < tmp_value && (types[i] == (types[i] & InclusiveType)))
+                else if (!MaxEntering && matrix[0,i] < tmp_value && (types[i] == (types[i] & InclusiveType)))
                 {
-                    tmp_value = matrix[i];
+                    tmp_value = matrix[0,i];
                     tmp_index = i;
                 }
             }
@@ -112,11 +111,11 @@ namespace Simplex.Analysis
             return tmp_index;
         }
 
-        protected int FindLeavingValueIndex(double[,] matrix, int column)
+        protected int FindLeavingValueIndex(Matrix matrix, int column)
         {
             int tmp_index = -1;
             double tmp_value = double.MaxValue;
-            for (int i = 0; i < matrix.GetLength(0); i++)
+            for (int i = 0; i < matrix.RowCount; i++)
             {
                 if (matrix[i, column] > 0 && matrix[i, column] < tmp_value)
                 {

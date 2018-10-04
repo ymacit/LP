@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Simplex.Helper
 {
-    internal class MatrixHelper
+    internal class MatrixHelperx
     {
     //    internal double Determinant(double[] matrix)
     //    {

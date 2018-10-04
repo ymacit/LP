@@ -14,38 +14,33 @@ using Simplex.Helper;
 
 namespace Simplex.Analysis
 {
-    internal class RevisedSimplexModel : StandartSimplexModel
+    internal class RevisedSimplexModel : SimplexModelDecorator
     {
         Matrix m_PhaseOneBasisMatrix = null;
-        Matrix m_PhaseOneBasisInverse = null;
         Matrix m_PhaseOneNonBasisMatrix = null;
         Matrix m_PhaseOneBasisRightHandMatrix = null;
         Matrix m_PhaseOneBasisObjectiveMatrix = null;
+        Matrix m_PhaseOneNonBasisObjectiveMatrix = null;
 
         Matrix m_BasisMatrix = null;
-        Matrix m_BasisInverse = null;
         Matrix m_NonBasisMatrix = null;
         Matrix m_BasisRightHandMatrix = null;
         Matrix m_BasisObjectiveMatrix = null;
-
-        internal RevisedSimplexModel(StandartSimplexModel basemodel):base(basemodel)
+        Matrix m_BasisNonObjectiveMatrix = null;
+        double m_ObjectiveCost;
+        internal RevisedSimplexModel(ISimplexModel basemodel) : base(basemodel)
         {
-            ConstarintMatrix = basemodel.ConstarintMatrix;
-            RightHandMatrix = basemodel.RightHandMatrix;
-            ObjectiveMatrix = basemodel.ObjectiveMatrix;
-            ArtificialObjectiveMatrix = basemodel.ArtificialObjectiveMatrix;
-            VarTypes = basemodel.VarTypes;
         }
 
+        internal double ObjectiveCost
+        {
+            get { return m_ObjectiveCost; }
+            set { m_ObjectiveCost = value; }
+        }
         internal Matrix BasisMatrix
         {
             get { return m_BasisMatrix; }
             set { m_BasisMatrix = value; }
-        }
-        internal Matrix BasisInverse
-        {
-            get { return m_BasisInverse; }
-            set { m_BasisInverse = value; }
         }
 
         internal Matrix NonBasisMatrix
@@ -65,16 +60,16 @@ namespace Simplex.Analysis
             get { return m_BasisObjectiveMatrix; }
             set { m_BasisObjectiveMatrix = value; }
         }
+        internal Matrix BasisNonObjectiveMatrix
+        {
+            get { return m_BasisNonObjectiveMatrix; }
+            set { m_BasisNonObjectiveMatrix = value; }
+        }
 
         internal Matrix PhaseOneBasisMatrix
         {
             get { return m_PhaseOneBasisMatrix; }
             set { m_PhaseOneBasisMatrix = value; }
-        }
-        internal Matrix PhaseOneBasisInverse
-        {
-            get { return m_PhaseOneBasisInverse; }
-            set { m_PhaseOneBasisInverse = value; }
         }
 
         internal Matrix PhaseOneNonBasisMatrix
@@ -95,5 +90,10 @@ namespace Simplex.Analysis
             set { m_PhaseOneBasisObjectiveMatrix = value; }
         }
 
+        internal Matrix PhaseNonOneBasisObjectiveMatrix
+        {
+            get { return m_PhaseOneNonBasisObjectiveMatrix; }
+            set { m_PhaseOneNonBasisObjectiveMatrix = value; }
+        }
     }
 }

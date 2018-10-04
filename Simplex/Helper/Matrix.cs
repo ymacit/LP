@@ -2,9 +2,7 @@
     Matrix class in C#
     Written by Ivan Kuckir (ivan.kuckir@gmail.com, http://blog.ivank.net)
     http://blog.ivank.net/lightweight-matrix-class-in-c-strassen-algorithm-lu-decomposition.html
-    Faculty of Mathematics and Physics
-    Charles University in Prague
-    (C) 2010
+    Faculty of Mathematics and Physics Charles University in Prague (C) 2010
     - updated on 01.06.2014 - Trimming the string before parsing
     - updated on 14.06.2012 - parsing improved. Thanks to Andy!
     - updated on 03.10.2012 - there was a terrible bug in LU, SoLE and Inversion. Thanks to Danilo Neves Cruz for reporting that!
@@ -32,6 +30,14 @@
 		WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 		FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 		OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+/*
+ * https://en.wikipedia.org/wiki/Array_data_structure
+ * http://www.mathcs.emory.edu/~cheung/Courses/561/Syllabus/3-C/array.html
+ * https://eli.thegreenplace.net/2015/memory-layout-of-multi-dimensional-arrays
+ * 2D row-major : [offset=i_{row}*NCOLS+i_{col}] 
+ * 2D column-major :[offset=i_{col}*NROWS+i_{row}]
 */
 
 using System;
@@ -78,6 +84,90 @@ namespace Simplex.Helper
                     StorageArray[i * ColumnCount + j] = matrix[i, j];
                 }
             }
+        }
+
+        public int GetColumnMaxValue(int iColumn, double initialValue)
+        {
+            int tmp_index = -1;
+            double tmp_minValue = initialValue;
+            double tmp_currentValue = 0;
+            for (int i = 0; i < RowCount; i++)
+            {
+                tmp_currentValue = StorageArray[i * ColumnCount + iColumn];
+                if (tmp_currentValue > tmp_minValue)
+                {
+                    tmp_minValue = tmp_currentValue;
+                    tmp_index = i;
+                }
+            }
+            return tmp_index;
+        }
+
+        public int GetNegativeMinValueByRow(int iRow)
+        {
+            int tmp_index = -1;
+            double tmp_minValue = 0;
+            double tmp_currentValue = 0;
+            for (int i = 0; i < ColumnCount; i++)
+            {
+                tmp_currentValue = StorageArray[iRow * ColumnCount + i];
+                if (tmp_currentValue < tmp_minValue)
+                {
+                    tmp_minValue = tmp_currentValue;
+                    tmp_index = i;
+                }
+            }
+            return tmp_index;
+        }
+
+        public int GetPositiveMinValueByRow(int iRow)
+        {
+            int tmp_index = -1;
+            double tmp_minValue = double.MaxValue;
+            double tmp_currentValue = 0;
+            for (int i = 0; i < ColumnCount; i++)
+            {
+                tmp_currentValue = StorageArray[iRow * ColumnCount + i];
+                if (tmp_currentValue >= 0 && tmp_currentValue > tmp_minValue)
+                {
+                    tmp_minValue = tmp_currentValue;
+                    tmp_index = i;
+                }
+            }
+            return tmp_index;
+        }
+
+        public int GetPositiveMaxValueByRow(int iRow)
+        {
+            int tmp_index = -1;
+            double tmp_maxValue = 0;
+            double tmp_currentValue = 0;
+            for (int i = 0; i < ColumnCount; i++)
+            {
+                tmp_currentValue = StorageArray[iRow * ColumnCount + i];
+                if (tmp_currentValue > tmp_maxValue)
+                {
+                    tmp_maxValue = tmp_currentValue;
+                    tmp_index = i;
+                }
+            }
+            return tmp_index;
+        }
+        public int GetNegativeMaxValueByRow(int iRow)
+        {
+            int tmp_index = -1;
+            double tmp_maxValue = 0;
+            double tmp_currentValue = 0;
+            for (int i = 0; i < ColumnCount; i++)
+            {
+                tmp_currentValue = StorageArray[iRow * ColumnCount + i];
+                if (tmp_currentValue <0 && tmp_currentValue > tmp_maxValue)
+                {
+                    tmp_maxValue = tmp_currentValue;
+                    tmp_index = i;
+                }
+            }
+            return tmp_index;
         }
 
         public Boolean IsSquare()
@@ -443,7 +533,7 @@ namespace Simplex.Helper
              *  . . .
              */
 
-            int z;
+int z;
             for (int i = 0; i < n - 4; i++)          // RowCount
             {
                 z = (int)Math.Pow(2, n - i - 1);

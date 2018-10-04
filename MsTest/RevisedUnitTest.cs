@@ -34,13 +34,69 @@ namespace MsTest
             Assert.IsNull(tmp_matrix, "success");
         }
 
-        public void SolveRevisedTwoPhasesSimplexModel1_Test()
+        [TestMethod]
+        public void SolveRevisedSimplexModel1_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel1();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
+        public void SolveRevisedSimplexModel3_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel3();
             Solution tmp_solution = SolveProblem(simplex);
             Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
         }
 
+        [TestMethod]
+        public void SolveRevisedSimplexModel6_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel6();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
+        public void SolveRevisedSimplexModel7_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel7();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
+        public void SolveRevisedSimplexModel8_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel8();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
+        public void SolveRevisedSimplexModel9_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel9();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
+        public void SolveRevisedSimplexModel10_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel10();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
+        public void SolveRevisedSimplexModel11_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel11();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
         private Solution SolveProblem(SimplexModel model)
         {
             Solution tmp_solution = null;
