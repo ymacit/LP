@@ -218,6 +218,21 @@ namespace Simplex.Analysis
                 System.Diagnostics.Debug.WriteLine("");
                 if (tmp_PivotRowIndex == -1)
                 {
+                    /*
+                     *  Unbounded solution
+                     *  Theorem 5
+                     *  Consider a linear model in maximization standard form. Let B be a basis formed by columns of A, and let xB = B−1b be its corresponding basic feasible solution, and z = cT BxB its objective value.
+                     *  If there exists a nonbasic vector ak in matrix A such that zk − ck < 0, and for such vector ak all coordinates yik are less than or equal to zero, i = 1, . . . ,m, then
+                     *  the solution to the model is UNBOUNDED.
+                    */
+
+                    /*                     
+                     * Alernative solutions
+                     * Theorem 6
+                     * Consider a linear model in maximization standard form. Let B be a basis formed by columns of A, and let xB = B−1b be its corresponding basic feasible solution, and z = cTBxB its objective value.
+                     * If zj−cj ≥ 0 holds for every vector aj of matrix A, then the solution xB is optimal. Moreover, if there exists a nonbasic vector ak such that zk − ck = 0, and at least one coordinate yik > 0, i = 1, . . . ,m, then there exist multiple optimal solutions. 
+                    */
+
                     tmp_solution.Quality = Enums.SolutionQuality.Unbounded;
                     System.Diagnostics.Debug.WriteLine("Problem is Unbounded.", "SolveStandart");
                     break;
@@ -243,8 +258,8 @@ namespace Simplex.Analysis
                  * 𝐛̅=𝐁−𝟏𝐛 :Right-hand side of constraints in BV tableau – values of basic variables
                  * 𝑍=𝐜𝐁𝐁−𝟏𝐛=𝐜𝐁𝐛̅=𝐰𝐛 : Right-hand side of BV row 0 – objective function value
                 */
-                //4)Calculate new Row (Rn') for selected tmp_PivotRowIndex
-                System.Diagnostics.Debug.WriteLine("**********New Row*********");
+                    //4)Calculate new Row (Rn') for selected tmp_PivotRowIndex
+                    System.Diagnostics.Debug.WriteLine("**********New Row*********");
                 tmp_pivotValue = tmp_ColumnVectorMatrix[tmp_PivotRowIndex, 0];
                 //tmp_pivotValue = nonBasis[tmp_PivotRowIndex, tmp_PivotColIndex];
                 for (int i = 0; i < inverseBasis.ColumnCount; i++)

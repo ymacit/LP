@@ -2,40 +2,39 @@
 using Simplex.Model;
 using Simplex.Enums;
 using Simplex.Analysis;
-using Simplex.Helper;
 
 namespace MsTest
 {
     [TestClass]
-    public class RevisedUnitTest
+    public class SimplexUnitTest
     {
         private const int m_digitRound = 3;
         private const string m_doubleFormat = "F3";
-        private const SolverType m_SolverType = SolverType.Revised;
+        private const SolverType m_SolverType = SolverType.Revised; 
+      //private const SolverType m_SolverType = SolverType.Regular;
+
 
         [TestMethod]
-        public void MatrixDeterminant_Test()
+        public void SimplexModel_Copy_Test()
         {
-            double[,] tmp_array = new double[2, 2] { { 4, 8 }, { 7, -2 } };
-            Matrix tmp_matrix = new Matrix(tmp_array);
-            double det = tmp_matrix.Det();
-            Matrix inv = tmp_matrix.Invert();
-            Matrix tpose = Matrix.Transpose(tmp_matrix);
-            Assert.IsNull(tmp_matrix, "success");
+            SimplexModel simplex = TestHelper.CreateSimplexModel3();
+            SimplexModel simplex2 = simplex.DeepCopy();
+            simplex2.GoalType = ObjectiveType.Maximum;
+            simplex2.Subjects[0].Terms[0].Vector = "X1 Copy";
+            var result = simplex.Subjects[0].Terms[0].Vector == simplex2.Subjects[0].Terms[0].Vector;
+            Assert.IsFalse(result, "copy is not verified");
         }
 
         [TestMethod]
-        public void MatrixUnit_Test()
+        public void SimplexModel_BFS_Test()
         {
-            double[] tmp_array = new double[3] { 0, 0, 0 };
-            Matrix tmp_matrix = new Matrix(tmp_array);
-            Matrix inv = tmp_matrix.Invert();
-            Matrix tpose = Matrix.Transpose(tmp_matrix);
-            Assert.IsNull(tmp_matrix, "success");
+            SimplexModel simplex = TestHelper.CreateSimplexModel1();
+            TestMessage testMessage = simplex.CheckBFS();
+            Assert.IsNull(testMessage.Exception, testMessage.Message);
         }
 
         [TestMethod]
-        public void SolveRevisedSimplexModel1_Test()
+        public void SolveSimplexModel1_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel1();
             Solution tmp_solution = SolveProblem(simplex);
@@ -43,7 +42,15 @@ namespace MsTest
         }
 
         [TestMethod]
-        public void SolveRevisedSimplexModel3_Test()
+        public void SolveSimplexModel2_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel2();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
+        public void SolveSimplexModel3_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel3();
             Solution tmp_solution = SolveProblem(simplex);
@@ -51,7 +58,22 @@ namespace MsTest
         }
 
         [TestMethod]
-        public void SolveRevisedSimplexModel6_Test()
+        public void SolveSimplexModel4_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel5();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+        [TestMethod]
+        public void SolveSimplexModel5_Test()
+        {
+            SimplexModel simplex = TestHelper.CreateSimplexModel5();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
+        [TestMethod]
+        public void SolveSimplexModel6_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel6();
             Solution tmp_solution = SolveProblem(simplex);
@@ -59,7 +81,7 @@ namespace MsTest
         }
 
         [TestMethod]
-        public void SolveRevisedSimplexModel7_Test()
+        public void SolveSimplexModel7_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel7();
             Solution tmp_solution = SolveProblem(simplex);
@@ -67,7 +89,7 @@ namespace MsTest
         }
 
         [TestMethod]
-        public void SolveRevisedSimplexModel8_Test()
+        public void SolveSimplexModel8_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel8();
             Solution tmp_solution = SolveProblem(simplex);
@@ -75,7 +97,7 @@ namespace MsTest
         }
 
         [TestMethod]
-        public void SolveRevisedSimplexModel9_Test()
+        public void SolveSimplexModel9_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel9();
             Solution tmp_solution = SolveProblem(simplex);
@@ -83,7 +105,7 @@ namespace MsTest
         }
 
         [TestMethod]
-        public void SolveRevisedSimplexModel10_Test()
+        public void SolveSimplexModel10_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel10();
             Solution tmp_solution = SolveProblem(simplex);
@@ -91,7 +113,7 @@ namespace MsTest
         }
 
         [TestMethod]
-        public void SolveRevisedSimplexModel11_Test()
+        public void SolveSimplexModel11_Test()
         {
             SimplexModel simplex = TestHelper.CreateSimplexModel11();
             Solution tmp_solution = SolveProblem(simplex);
@@ -99,7 +121,7 @@ namespace MsTest
         }
 
         [TestMethod]
-        public void SolveRevisedSimplexModel12_Test()
+        public void SolveSimplexModel12_Test()
         {
             //two phase
             SimplexModel simplex = TestHelper.CreateSimplexModel12();

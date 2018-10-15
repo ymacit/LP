@@ -29,7 +29,7 @@ namespace Simplex.Model
         public Double ResultValue { get; set; }
 
         /// <summary>
-        /// Set true if alternate solutions exist.
+        /// if alternate solutions exist.
         /// </summary>
         public bool AlternateSolutionsExist { get; set; }
 
