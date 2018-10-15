@@ -20,22 +20,15 @@ namespace Simplex.Analysis
             double[] tmp_phaseObjectiveMatrix = new double[columnCount];
             VariableType[] tmp_types = new VariableType[columnCount];
             double[,] tmp_constarintMatrix = new double[rowCount, columnCount];
-            double[,] tmp_RightHandMatrix = new double[rowCount + 1, 2]; // +1 is for objective function, second dimension is for ratio 
+            double[,] tmp_RightHandMatrix = new double[rowCount,1]; // +1 is for objective function, second dimension is for ratio 
 
             List<int> tmp_basicVariables = new List<int>();
+            int tmp_colIndex = -1;
 
-            for (int i = 0; i < columnCount; i++)
+            //set the basic variable flag as -1
+            for (int i = 0; i < rowCount; i++)
             {
                 tmp_basicVariables.Add(-1);
-            }
-
-            if (model.IsTwoPhase)
-            {
-                for (int j = 0; j < columnCount; j++)
-                {
-                    tmp_phaseObjectiveMatrix[j] = model.PhaseObjectiveFunction.Terms[j].Factor;
-                }
-                tmp_RightHandMatrix[rowCount, 0] = model.PhaseObjectiveFunction.RightHandValue;
             }
 
             for (int j = 0; j < columnCount; j++)
@@ -46,17 +39,32 @@ namespace Simplex.Analysis
 
             for (int i = 0; i < rowCount; i++)
             {
-                //set the basic variable flag as -1
-                tmp_RightHandMatrix[i, 1] = -1;
+                tmp_colIndex = 0;
                 for (int j = 0; j < columnCount; j++)
                 {
+                    //we add absolutely column element to the constarint matrix.
                     tmp_constarintMatrix[i, j] = model.Subjects[i].Terms[j].Factor;
-
-                    //set the basic variable flag as j
-                    if (model.Subjects[i].Terms[j].Basic)
-                        tmp_RightHandMatrix[i, 1] = j;
+                    //if term is basic, let us calculate the constarint matrix
+                    if (model.ObjectiveFunction.Terms[j].Basic)// && model.Subjects[i].Terms[j].Factor==1)
+                    {
+                        //basic variable flag
+                        if (tmp_constarintMatrix[i, j] == 1)// && tmp_rowIndex == tmp_colIndex)
+                        {
+                            tmp_basicVariables[i] = j;
+                        }
+                        tmp_colIndex++;
+                    }
                 }
                 tmp_RightHandMatrix[i, 0] = model.Subjects[i].RightHandValue;
+            }
+
+            if (model.IsTwoPhase)
+            {
+                for (int j = 0; j < columnCount; j++)
+                {
+                    tmp_phaseObjectiveMatrix[j] = (-1) * model.PhaseObjectiveFunction.Terms[j].Factor;
+                }
+                model.ObjectiveCost = (-1) * model.PhaseObjectiveFunction.RightHandValue;
             }
 
             model.ObjectiveMatrix = new Matrix(tmp_objectiveMatrix);
@@ -64,6 +72,7 @@ namespace Simplex.Analysis
             model.RightHandMatrix = new Matrix(tmp_RightHandMatrix);
             model.ConstarintMatrix = new Matrix(tmp_constarintMatrix);
             model.VarTypes = tmp_types;
+            model.BasicVariables = tmp_basicVariables;
 
         }
         internal static void TruncatePhaseResult(this StandartSimplexModel model, Solution solution)
@@ -110,29 +119,27 @@ namespace Simplex.Analysis
             }
 
             tmp_totalRemoveIndex.Sort();
-            TruncatePhaseColumns(model, tmp_totalRemoveIndex);
+            TruncatePhaseColumns(model, tmp_totalRemoveIndex, model.BasicVariables);
         }
-        private static void TruncatePhaseColumns(StandartSimplexModel model, List<int> removeList)
+        private static void TruncatePhaseColumns(StandartSimplexModel model, List<int> removeList, List<int> basicVariables)
         {
             //declare new matrix for replace Phase I result 
             int tmp_rowCount = model.ConstarintMatrix.RowCount;
             int tmp_oldColumnCount = model.ObjectiveMatrix.ColumnCount;
             int tmp_removeCount = removeList.Count;
-            int[] tmp_oldbasic = new int[tmp_oldColumnCount];
-            int[] tmp_basic = new int[tmp_oldColumnCount - tmp_removeCount];
+            //int[] tmp_basic = new int[tmp_oldColumnCount - tmp_removeCount];
             double[] tmp_objectiveMatrix = new double[tmp_oldColumnCount - tmp_removeCount];
             VariableType[] tmp_types = new VariableType[tmp_oldColumnCount - tmp_removeCount];
             double[,] tmp_constarintMatrix = new double[tmp_rowCount, tmp_oldColumnCount - tmp_removeCount];
 
             //transfer the basic flag to teh temprory array
-            for (int i = 0; i < tmp_oldColumnCount; i++)
+            for (int i = removeList.Count-1; i > -1; i--)
             {
-                tmp_oldbasic[i] = -1;
-            }
-            for (int i = 0; i < tmp_rowCount; i++)
-            {
-                if (model.RightHandMatrix[i, 1] != -1)
-                    tmp_oldbasic[(int)model.RightHandMatrix[i, 1]] = i;
+                for (int j = 0; j < basicVariables.Count; j++)
+                {
+                    if (basicVariables[j] > removeList[i])
+                        basicVariables[j] = basicVariables[j] - 1;
+                }
             }
             Dictionary<Term, Subject> tmp_RemovePairList = new Dictionary<Term, Subject>();
             int tmp_newIndex = 0;
@@ -151,7 +158,6 @@ namespace Simplex.Analysis
                     //narrow the types
                     tmp_types[tmp_newIndex] = model.VarTypes[i];
                     //narrow the basic matrix value
-                    tmp_basic[tmp_newIndex] = tmp_oldbasic[i];
                     tmp_objectiveMatrix[tmp_newIndex] = model.ObjectiveMatrix[0, i];
                     for (int j = 0; j < model.ConstarintMatrix.RowCount; j++)
                     {
@@ -168,7 +174,6 @@ namespace Simplex.Analysis
 
             //Update the objective function original variable with cosntraint value;
             double[] tmp_objectiveMatrixUpdated = new double[tmp_objectiveMatrix.Length];
-            int tmp_ObjectiveLeftValueIndex = model.RightHandMatrix.RowCount - 1;
             tmp_objectiveMatrix.CopyTo(tmp_objectiveMatrixUpdated, 0);
             //VariableType tmp_inclusive = (VariableType.Original | VariableType.Slack | VariableType.Excess);
             double tmp_pivotValue = 0;
@@ -176,7 +181,7 @@ namespace Simplex.Analysis
             {
                 //is variable inclusion group
                 //if (tmp_objectiveMatrix[i] != 0 && tmp_types[i] == (tmp_types[i] & tmp_inclusive))
-                if (tmp_objectiveMatrix[i] != 0 && tmp_basic[i] != -1 && tmp_constarintMatrix[tmp_basic[i], i] == 1)
+                if (tmp_objectiveMatrix[i] != 0 && basicVariables.Contains(i) && tmp_constarintMatrix[basicVariables.IndexOf(i), i] == 1)
                 {
                     tmp_pivotValue = tmp_objectiveMatrix[i];
                     //Find the related cosntraint row
@@ -192,24 +197,15 @@ namespace Simplex.Analysis
                             tmp_objectiveMatrixUpdated[k] = Math.Round(tmp_objectiveMatrixUpdated[k] - tmp_pivotValue * tmp_constarintMatrix[j, k], 5);
                         }
                         //in addition set the left value 
-                        model.RightHandMatrix[tmp_ObjectiveLeftValueIndex, 0] = Math.Round(model.RightHandMatrix[tmp_ObjectiveLeftValueIndex, 0] - tmp_pivotValue * model.RightHandMatrix[j, 0], 5);
-                        model.RightHandMatrix[tmp_ObjectiveLeftValueIndex, 1] = 0;
+                        model.ObjectiveCost = Math.Round(model.ObjectiveCost - tmp_pivotValue * model.RightHandMatrix[j, 0], 5);                        
                     }
                 }
-            }
-            //transfer temprory basic set to righthand
-            for (int i = 0; i < tmp_rowCount; i++)
-            {
-                model.RightHandMatrix[i, 1] = -1;
-            }
-            for (int i = 0; i < tmp_basic.Length; i++)
-            {
-                if (tmp_basic[i] != -1)
-                    model.RightHandMatrix[tmp_basic[i], 1] = i;
             }
             model.VarTypes = tmp_types;
             model.ObjectiveMatrix = new Matrix(tmp_objectiveMatrixUpdated);
             model.ConstarintMatrix = new Matrix(tmp_constarintMatrix);
+            model.BasicVariables = basicVariables;
+            model.ObjectiveCost = 0;
         }
     }
 }

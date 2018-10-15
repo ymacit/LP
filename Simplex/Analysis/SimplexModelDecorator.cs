@@ -15,7 +15,7 @@ namespace Simplex.Analysis
         int m_currentPhase = 2; //let us assume default is phase II
         List<int> m_basicVariables = null;
         VariableType[] m_vartypes = null;
-
+        double m_ObjectiveCost;
 
         public SimplexModelDecorator(ISimplexModel decoratedModel)
         {
@@ -23,6 +23,11 @@ namespace Simplex.Analysis
             m_testMessage = this.CheckBFS();
         }
 
+        internal double ObjectiveCost
+        {
+            get { return m_ObjectiveCost; }
+            set { m_ObjectiveCost = value; }
+        }
         internal List<int> BasicVariables
         {
             get { return m_basicVariables; }

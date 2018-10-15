@@ -30,7 +30,6 @@ namespace Simplex.Analysis
             /*
              *1-amaç fonksiyonda sadece temel değişkenler kalacak şekilde daralt
             */
-            int tmp_rowIndex = 0;
             int tmp_colIndex = 0;
             int rowCount = model.Subjects.Count;
             int columnCount = model.ObjectiveFunction.Terms.Count;
@@ -61,7 +60,6 @@ namespace Simplex.Analysis
                 }
             }
 
-            tmp_rowIndex = 0;
             tmp_colIndex = 0;
 
             for (int i = 0; i < rowCount; i++)

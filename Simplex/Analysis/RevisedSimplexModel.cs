@@ -26,16 +26,11 @@ namespace Simplex.Analysis
         Matrix m_BasisRightHandMatrix = null;
         Matrix m_BasisObjectiveMatrix = null;
         Matrix m_BasisNonObjectiveMatrix = null;
-        double m_ObjectiveCost;
+
         internal RevisedSimplexModel(ISimplexModel basemodel) : base(basemodel)
         {
         }
 
-        internal double ObjectiveCost
-        {
-            get { return m_ObjectiveCost; }
-            set { m_ObjectiveCost = value; }
-        }
         internal Matrix BasisMatrix
         {
             get { return m_BasisMatrix; }
