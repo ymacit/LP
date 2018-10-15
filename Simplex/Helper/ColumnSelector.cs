@@ -25,23 +25,58 @@ namespace Simplex.Helper
 
     internal interface IColumnSelector
     {
-        int GetSelectedIndex(Matrix matrix, int rowIndex);
+        int GetSelectedIndex(Matrix matrix, int rowIndex, List<int> ExclusionList);
 
     }
 
     internal class ColumnMaxValueSelector : IColumnSelector
     {
-        public int GetSelectedIndex(Matrix matrix, int rowIndex)
+        public int GetSelectedIndex(Matrix matrix, int rowIndex, List<int> ExclusionList)
         {
-            return matrix.GetPositiveMaxValueByRow(rowIndex);
+            //return matrix.GetPositiveMaxValueByRow(rowIndex);
+            int tmp_index = -1;
+            double tmp_maxValue = 0;
+            double tmp_currentValue = 0;
+            for (int i = 0; i < matrix.ColumnCount; i++)
+            {
+                if (ExclusionList.Contains(i))
+                    continue;
+
+                tmp_currentValue = matrix.StorageArray[rowIndex * matrix.ColumnCount + i];
+                if (tmp_currentValue > tmp_maxValue)
+                {
+                    tmp_maxValue = tmp_currentValue;
+                    tmp_index = i;
+                }
+            }
+            return tmp_index;
         }
+
+
     }
 
     internal class ColumnMinValueSelector : IColumnSelector
     {
-        public int GetSelectedIndex(Matrix matrix, int rowIndex)
+        public int GetSelectedIndex(Matrix matrix, int rowIndex, List<int> ExclusionList)
         {
-            return matrix.GetPositiveMinValueByRow(rowIndex);
+            //return matrix.GetNegativeMinValueByRow(rowIndex);
+
+            int tmp_index = -1;
+            double tmp_minValue = 0;
+            double tmp_currentValue = 0;
+            for (int i = 0; i < matrix.ColumnCount; i++)
+            {
+                if (ExclusionList.Contains(i))
+                    continue;
+                tmp_currentValue = matrix.StorageArray[rowIndex * matrix.ColumnCount + i];
+                if (tmp_currentValue < tmp_minValue)
+                {
+                    tmp_minValue = tmp_currentValue;
+                    tmp_index = i;
+                }
+            }
+            return tmp_index;
+
         }
     }
 }

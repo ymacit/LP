@@ -52,16 +52,16 @@ namespace Simplex.Analysis
             if (solution.Quality == SolutionQuality.Optimal || solution.Quality == SolutionQuality.Alternative)
             {
                 int tmp_ColIndex = -1;
-                for (int i = 0; i < RightHandMatrix.RowCount; i++)
+                for (int i = 0; i < solution.BasicVariables.Count; i++)
                 {
-                    tmp_ColIndex = (int)RightHandMatrix[i, 1];
+                    tmp_ColIndex = solution.BasicVariables[i];
                     if (tmp_ColIndex != -1 )
                         solution.Results.Add(new ResultTerm() { VarType = objectiveFunction[tmp_ColIndex].VarType, Vector = objectiveFunction[tmp_ColIndex].Vector, Value = RightHandMatrix[i, 0] });
                 }
             }
         }
 
-        protected void PrintMatrix(Matrix objective, Matrix constarints, Matrix RightHandValues, Matrix basicFlagMatrix, double objectiveCost, int iteration)
+        protected void PrintMatrix(Matrix objective, Matrix constarints, Matrix RightHandValues, List<int> basicVariables, double objectiveCost, int iteration)
         {
             string tmp_sign = string.Empty;
             System.Diagnostics.Debug.WriteLine("*********************************");
@@ -85,17 +85,20 @@ namespace Simplex.Analysis
                     System.Diagnostics.Debug.Write(tmp_sign + constarints[i, j].ToString("F3") + " ");
                 }
                 System.Diagnostics.Debug.Write(" = " + RightHandValues[i, 0].ToString("F4"));
-                System.Diagnostics.Debug.WriteLine("  | " + basicFlagMatrix[i, 0].ToString());
+                System.Diagnostics.Debug.WriteLine("  | " + basicVariables[i].ToString());
             }
             System.Diagnostics.Debug.WriteLine("*********************************");
         }
 
-        protected int FindEnteringValueIndex(Matrix matrix, VariableType[] types, VariableType InclusiveType, bool MaxEntering)
+        protected int FindEnteringValueIndex(Matrix matrix, VariableType[] types, VariableType InclusiveType, List<int> ExclusionList, bool MaxEntering)
         {
             int tmp_index = -1;
             double tmp_value = 0;
             for (int i = 0; i < matrix.ColumnCount; i++)
             {
+                if (ExclusionList.Contains(i))
+                    continue;
+
                 if (MaxEntering && matrix[0,i] > tmp_value && (types[i] == (types[i] & InclusiveType)))
                 {
                     tmp_value = matrix[0,i];

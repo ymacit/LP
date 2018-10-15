@@ -6,12 +6,14 @@ using Simplex.Model;
 
 namespace Simplex.Analysis
 {
+    [Serializable]
     internal class SimplexModelDecorator:ISimplexModel
     {
         protected ISimplexModel m_decoratedModel = null;
         Subject m_PhaseOneObjective = new Subject() { RightHandValue = 0, Equality = EquailtyType.Equals };
         TestMessage m_testMessage;
         int m_currentPhase = 2; //let us assume default is phase II
+        List<int> m_basicVariables = null;
         VariableType[] m_vartypes = null;
 
 
@@ -19,6 +21,12 @@ namespace Simplex.Analysis
         {
             m_decoratedModel = decoratedModel;
             m_testMessage = this.CheckBFS();
+        }
+
+        internal List<int> BasicVariables
+        {
+            get { return m_basicVariables; }
+            set { m_basicVariables = value; }
         }
 
         internal Subject PhaseObjectiveFunction

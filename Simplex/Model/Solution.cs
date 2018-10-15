@@ -22,6 +22,8 @@ namespace Simplex.Model
         {
             Results = new List<ResultTerm>();
         }
+        
+        internal List<int> BasicVariables { get; set; }
 
         public List<ResultTerm> Results { get; set; }
         public Double ResultValue { get; set; }

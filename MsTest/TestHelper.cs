@@ -16,20 +16,20 @@ namespace MsTest
 
             simplex.GoalType = ObjectiveType.Minumum;
             simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X1" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X2" });
+            simplex.ObjectiveFunction.AddTerm( 2,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( 3,VariableType.Original, "X2" );
 
             Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.LessEquals, RightHandValue = 4 };
-            subject1.Terms.Add(new Term() { Factor = 0.5, VarType = VariableType.Original, Vector = "X1" });
-            subject1.Terms.Add(new Term() { Factor = 0.25, VarType = VariableType.Original, Vector = "X2" });
+            subject1.AddTerm( 0.5,VariableType.Original, "X1" );
+            subject1.AddTerm( 0.25,VariableType.Original, "X2" );
 
             Subject subject2 = new Subject() { Index = 2, RowLabel = "R2", Equality = EquailtyType.GreaterEquals, RightHandValue = 20 };
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject2.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X2" });
+            subject2.AddTerm( 1,VariableType.Original, "X1" );
+            subject2.AddTerm( 3,VariableType.Original, "X2" );
 
             Subject subject3 = new Subject() { Index = 3, RowLabel = "R3", Equality = EquailtyType.Equals, RightHandValue = 10 };
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
+            subject3.AddTerm( 1,VariableType.Original, "X1" );
+            subject3.AddTerm( 1,VariableType.Original, "X2" );
 
             simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2, subject3 };
 
@@ -62,20 +62,20 @@ namespace MsTest
 
             simplex.GoalType = ObjectiveType.Minumum;
             simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 4, VarType = VariableType.Original, Vector = "X1" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
+            simplex.ObjectiveFunction.AddTerm( 4,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( 1,VariableType.Original, "X2" );
 
             Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.Equals, RightHandValue = 3 };
-            subject1.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X1" });
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
+            subject1.AddTerm( 3,VariableType.Original, "X1" );
+            subject1.AddTerm( 1,VariableType.Original, "X2" );
 
             Subject subject2 = new Subject() { Index = 2, RowLabel = "R2", Equality = EquailtyType.GreaterEquals, RightHandValue = 6 };
-            subject2.Terms.Add(new Term() { Factor = 4, VarType = VariableType.Original, Vector = "X1" });
-            subject2.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X2" });
+            subject2.AddTerm( 4,VariableType.Original, "X1" );
+            subject2.AddTerm( 3,VariableType.Original, "X2" );
 
             Subject subject3 = new Subject() { Index = 3, RowLabel = "R3", Equality = EquailtyType.LessEquals, RightHandValue = 4 };
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject3.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X2" });
+            subject3.AddTerm( 1,VariableType.Original, "X1" );
+            subject3.AddTerm( 2,VariableType.Original, "X2" );
 
             simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2, subject3 };
 
@@ -89,48 +89,48 @@ namespace MsTest
 
             simplex.GoalType = ObjectiveType.Minumum;
             simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 0.35, VarType = VariableType.Original, Vector = "X1" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 0.35, VarType = VariableType.Original, Vector = "X2" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 0.20, VarType = VariableType.Original, Vector = "X3" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 0.10, VarType = VariableType.Original, Vector = "X4" });
+            simplex.ObjectiveFunction.AddTerm( 0.35,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( 0.35,VariableType.Original, "X2" );
+            simplex.ObjectiveFunction.AddTerm( 0.20,VariableType.Original, "X3" );
+            simplex.ObjectiveFunction.AddTerm( 0.10,VariableType.Original, "X4" );
 
             Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.GreaterEquals, RightHandValue = 82 };
-            subject1.Terms.Add(new Term() { Factor = 0.35, VarType = VariableType.Original, Vector = "X1" });
-            subject1.Terms.Add(new Term() { Factor = 0.35, VarType = VariableType.Original, Vector = "X2" });
-            subject1.Terms.Add(new Term() { Factor = 0.20, VarType = VariableType.Original, Vector = "X3" });
-            subject1.Terms.Add(new Term() { Factor = 0.10, VarType = VariableType.Original, Vector = "X4" });
+            subject1.AddTerm( 0.35,VariableType.Original, "X1" );
+            subject1.AddTerm( 0.35,VariableType.Original, "X2" );
+            subject1.AddTerm( 0.20,VariableType.Original, "X3" );
+            subject1.AddTerm( 0.10,VariableType.Original, "X4" );
 
             Subject subject2 = new Subject() { Index = 2, RowLabel = "R2", Equality = EquailtyType.GreaterEquals, RightHandValue = 75 };
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
+            subject2.AddTerm( 1,VariableType.Original, "X1" );
 
             Subject subject3 = new Subject() { Index = 3, RowLabel = "R3", Equality = EquailtyType.GreaterEquals, RightHandValue = 75 };
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
+            subject3.AddTerm( 1,VariableType.Original, "X2" );
 
 
             Subject subject4 = new Subject() { Index = 4, RowLabel = "R4", Equality = EquailtyType.GreaterEquals, RightHandValue = 72 };
-            subject4.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
+            subject4.AddTerm( 1,VariableType.Original, "X3" );
 
 
             Subject subject5 = new Subject() { Index = 5, RowLabel = "R5", Equality = EquailtyType.GreaterEquals, RightHandValue = 70 };
-            subject5.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
+            subject5.AddTerm( 1,VariableType.Original, "X4" );
 
 
             Subject subject6 = new Subject() { Index = 6, RowLabel = "R6", Equality = EquailtyType.LessEquals, RightHandValue = 85 };
-            subject6.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
+            subject6.AddTerm( 1,VariableType.Original, "X1" );
 
 
             Subject subject7 = new Subject() { Index = 7, RowLabel = "R7", Equality = EquailtyType.LessEquals, RightHandValue = 85 };
-            subject7.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
+            subject7.AddTerm( 1,VariableType.Original, "X2" );
 
 
             Subject subject8 = new Subject() { Index = 8, RowLabel = "R8", Equality = EquailtyType.LessEquals, RightHandValue = 90 };
-            subject8.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
+            subject8.AddTerm( 1,VariableType.Original, "X3" );
 
 
             Subject subject9 = new Subject() { Index = 9, RowLabel = "R9", Equality = EquailtyType.LessEquals, RightHandValue = 88 };
-            subject9.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
+            subject9.AddTerm( 1,VariableType.Original, "X4" );
 
-            //simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject2, subject3, subject4, subject5, subject6, subject7, subject8, subject9 };
+            //simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject6, subject7, subject8, subject9 , subject1, subject2, subject3, subject4, subject5};
             simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2, subject3, subject4, subject5, subject6, subject7, subject8, subject9 };
 
             /*
@@ -166,16 +166,16 @@ namespace MsTest
 
             simplex.GoalType = ObjectiveType.Maximum;
             simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X1" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 4, VarType = VariableType.Original, Vector = "X2" });
+            simplex.ObjectiveFunction.AddTerm( 3,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( 4,VariableType.Original, "X2" );
 
             Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.LessEquals, RightHandValue = 150 };
-            subject1.Terms.Add(new Term() { Factor = 15, VarType = VariableType.Original, Vector = "X1" });
-            subject1.Terms.Add(new Term() { Factor = 10, VarType = VariableType.Original, Vector = "X2" });
+            subject1.AddTerm( 15,VariableType.Original, "X1" );
+            subject1.AddTerm( 10,VariableType.Original, "X2" );
 
             Subject subject2 = new Subject() { Index = 2, RowLabel = "R2", Equality = EquailtyType.LessEquals, RightHandValue = 55 };
-            subject2.Terms.Add(new Term() { Factor = 2.5, VarType = VariableType.Original, Vector = "X1" });
-            subject2.Terms.Add(new Term() { Factor = 5, VarType = VariableType.Original, Vector = "X2" });
+            subject2.AddTerm( 2.5,VariableType.Original, "X1" );
+            subject2.AddTerm( 5,VariableType.Original, "X2" );
 
 
             simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2 };
@@ -190,34 +190,34 @@ namespace MsTest
 
             simplex.GoalType = ObjectiveType.Maximum;
             simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 40, VarType = VariableType.Original, Vector = "X1" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 10, VarType = VariableType.Original, Vector = "X2" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 7, VarType = VariableType.Original, Vector = "X5" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 14, VarType = VariableType.Original, Vector = "X6" });
+            simplex.ObjectiveFunction.AddTerm( 40,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( 10,VariableType.Original, "X2" );
+            simplex.ObjectiveFunction.AddTerm( 7,VariableType.Original, "X5" );
+            simplex.ObjectiveFunction.AddTerm( 14,VariableType.Original, "X6" );
 
             Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.Equals, RightHandValue = 0 };
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject1.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X2" });
-            subject1.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X5" });
+            subject1.AddTerm( 1,VariableType.Original, "X1" );
+            subject1.AddTerm( -1,VariableType.Original, "X2" );
+            subject1.AddTerm( 2,VariableType.Original, "X5" );
 
             Subject subject2 = new Subject() { Index = 2, RowLabel = "R2", Equality = EquailtyType.Equals, RightHandValue = 0 };
-            subject2.Terms.Add(new Term() { Factor = -2, VarType = VariableType.Original, Vector = "X1" });
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
-            subject2.Terms.Add(new Term() { Factor = -2, VarType = VariableType.Original, Vector = "X5" });
+            subject2.AddTerm( -2,VariableType.Original, "X1" );
+            subject2.AddTerm( 1,VariableType.Original, "X2" );
+            subject2.AddTerm( -2,VariableType.Original, "X5" );
 
 
             Subject subject3 = new Subject() { Index = 2, RowLabel = "R3", Equality = EquailtyType.Equals, RightHandValue = 3 };
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X5" });
-            subject3.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X6" });
+            subject3.AddTerm( 1,VariableType.Original, "X1" );
+            subject3.AddTerm( 1,VariableType.Original, "X3" );
+            subject3.AddTerm( 1,VariableType.Original, "X5" );
+            subject3.AddTerm( -1,VariableType.Original, "X6" );
 
             Subject subject4 = new Subject() { Index = 2, RowLabel = "R4", Equality = EquailtyType.Equals, RightHandValue = 4 };
-            subject4.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X2" });
-            subject4.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
-            subject4.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
-            subject4.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X5" });
-            subject4.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X6" });
+            subject4.AddTerm( 2,VariableType.Original, "X2" );
+            subject4.AddTerm( 1,VariableType.Original, "X3" );
+            subject4.AddTerm( 1,VariableType.Original, "X4" );
+            subject4.AddTerm( 2,VariableType.Original, "X5" );
+            subject4.AddTerm( 1,VariableType.Original, "X6" );
 
 
             simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2, subject3, subject4 };
@@ -232,33 +232,33 @@ namespace MsTest
             //Maks x1 + 2x2 – x3 + x4 + 4x5 – 2x6
             simplex.GoalType = ObjectiveType.Maximum;
             simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X2" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X3" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 4, VarType = VariableType.Original, Vector = "X5" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -2, VarType = VariableType.Original, Vector = "X6" });
+            simplex.ObjectiveFunction.AddTerm( 1,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( 2,VariableType.Original, "X2" );
+            simplex.ObjectiveFunction.AddTerm( -1,VariableType.Original, "X3" );
+            simplex.ObjectiveFunction.AddTerm( 1,VariableType.Original, "X4" );
+            simplex.ObjectiveFunction.AddTerm( 4,VariableType.Original, "X5" );
+            simplex.ObjectiveFunction.AddTerm( -2,VariableType.Original, "X6" );
 
             Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.LessEquals, RightHandValue = 6 };
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X5" });
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X6" });
+            subject1.AddTerm( 1,VariableType.Original, "X1" );
+            subject1.AddTerm( 1,VariableType.Original, "X2" );
+            subject1.AddTerm( 1,VariableType.Original, "X3" );
+            subject1.AddTerm( 1,VariableType.Original, "X4" );
+            subject1.AddTerm( 1,VariableType.Original, "X5" );
+            subject1.AddTerm( 1,VariableType.Original, "X6" );
 
             Subject subject2 = new Subject() { Index = 2, RowLabel = "R2", Equality = EquailtyType.LessEquals, RightHandValue = 4 };
-            subject2.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X1" });
-            subject2.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X2" });
-            subject2.Terms.Add(new Term() { Factor = -2, VarType = VariableType.Original, Vector = "X3" });
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
+            subject2.AddTerm( 2,VariableType.Original, "X1" );
+            subject2.AddTerm( -1,VariableType.Original, "X2" );
+            subject2.AddTerm( -2,VariableType.Original, "X3" );
+            subject2.AddTerm( 1,VariableType.Original, "X4" );
 
 
             Subject subject3 = new Subject() { Index = 2, RowLabel = "R3", Equality = EquailtyType.LessEquals, RightHandValue = 4 };
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
-            subject3.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X5" });
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X6" });
+            subject3.AddTerm( 1,VariableType.Original, "X3" );
+            subject3.AddTerm( 1,VariableType.Original, "X4" );
+            subject3.AddTerm( 2,VariableType.Original, "X5" );
+            subject3.AddTerm( 1,VariableType.Original, "X6" );
 
 
             simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2, subject3 };
@@ -285,37 +285,37 @@ namespace MsTest
             //Maks 2x1 + 3x2 - 4x3 + 3x4 + x5 - 4x6 + 6X7
             simplex.GoalType = ObjectiveType.Maximum;
             simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X1" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X2" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -4, VarType = VariableType.Original, Vector = "X3" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X4" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X5" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -4, VarType = VariableType.Original, Vector = "X6" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 6, VarType = VariableType.Original, Vector = "X7" });
+            simplex.ObjectiveFunction.AddTerm( 2,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( 3,VariableType.Original, "X2" );
+            simplex.ObjectiveFunction.AddTerm( -4,VariableType.Original, "X3" );
+            simplex.ObjectiveFunction.AddTerm( 3,VariableType.Original, "X4" );
+            simplex.ObjectiveFunction.AddTerm( 1,VariableType.Original, "X5" );
+            simplex.ObjectiveFunction.AddTerm( -4,VariableType.Original, "X6" );
+            simplex.ObjectiveFunction.AddTerm( 6,VariableType.Original, "X7" );
 
             Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.Equals, RightHandValue = 3 };
-            subject1.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X2" });
-            subject1.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X3" });
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
-            subject1.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X5" });
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X6" });
-            subject1.Terms.Add(new Term() { Factor = -5, VarType = VariableType.Original, Vector = "X7" });
+            subject1.AddTerm( 3,VariableType.Original, "X2" );
+            subject1.AddTerm( 3,VariableType.Original, "X3" );
+            subject1.AddTerm( 1,VariableType.Original, "X4" );
+            subject1.AddTerm( -1,VariableType.Original, "X5" );
+            subject1.AddTerm( 1,VariableType.Original, "X6" );
+            subject1.AddTerm( -5,VariableType.Original, "X7" );
 
             Subject subject2 = new Subject() { Index = 2, RowLabel = "R2", Equality = EquailtyType.Equals, RightHandValue = 4 };
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject2.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X2" });
-            subject2.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X3" });
-            subject2.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X5" });
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X6" });
-            subject2.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X7" });
+            subject2.AddTerm( 1,VariableType.Original, "X1" );
+            subject2.AddTerm( 3,VariableType.Original, "X2" );
+            subject2.AddTerm( -1,VariableType.Original, "X3" );
+            subject2.AddTerm( -1,VariableType.Original, "X5" );
+            subject2.AddTerm( 1,VariableType.Original, "X6" );
+            subject2.AddTerm( 3,VariableType.Original, "X7" );
 
 
             Subject subject3 = new Subject() { Index = 2, RowLabel = "R3", Equality = EquailtyType.Equals, RightHandValue = 5 };
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject3.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X2" });
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
-            subject3.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X5" });
-            subject3.Terms.Add(new Term() { Factor = -2, VarType = VariableType.Original, Vector = "X7" });
+            subject3.AddTerm( 1,VariableType.Original, "X1" );
+            subject3.AddTerm( 2,VariableType.Original, "X2" );
+            subject3.AddTerm( 1,VariableType.Original, "X4" );
+            subject3.AddTerm( 2,VariableType.Original, "X5" );
+            subject3.AddTerm( -2,VariableType.Original, "X7" );
 
 
             simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2, subject3 };
@@ -349,29 +349,29 @@ namespace MsTest
 
             simplex.GoalType = ObjectiveType.Minumum;
             simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -19, VarType = VariableType.Original, Vector = "X1" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -13, VarType = VariableType.Original, Vector = "X2" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -12, VarType = VariableType.Original, Vector = "X3" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -17, VarType = VariableType.Original, Vector = "X4" });
+            simplex.ObjectiveFunction.AddTerm( -19,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( -13,VariableType.Original, "X2" );
+            simplex.ObjectiveFunction.AddTerm( -12,VariableType.Original, "X3" );
+            simplex.ObjectiveFunction.AddTerm( -17,VariableType.Original, "X4" );
 
             Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.Equals, RightHandValue = 225 };
-            subject1.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X1" });
-            subject1.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X2" });
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
-            subject1.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X4" });
+            subject1.AddTerm( 3,VariableType.Original, "X1" );
+            subject1.AddTerm( 2,VariableType.Original, "X2" );
+            subject1.AddTerm( 1,VariableType.Original, "X3" );
+            subject1.AddTerm( 2,VariableType.Original, "X4" );
 
             Subject subject2 = new Subject() { Index = 2, RowLabel = "R2", Equality = EquailtyType.Equals, RightHandValue = 117 };
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X4" });
+            subject2.AddTerm( 1,VariableType.Original, "X1" );
+            subject2.AddTerm( 1,VariableType.Original, "X2" );
+            subject2.AddTerm( 1,VariableType.Original, "X3" );
+            subject2.AddTerm( 1,VariableType.Original, "X4" );
 
 
             Subject subject3 = new Subject() { Index = 2, RowLabel = "R3", Equality = EquailtyType.Equals, RightHandValue = 420 };
-            subject3.Terms.Add(new Term() { Factor = 4, VarType = VariableType.Original, Vector = "X1" });
-            subject3.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X2" });
-            subject3.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X3" });
-            subject3.Terms.Add(new Term() { Factor = 4, VarType = VariableType.Original, Vector = "X4" });
+            subject3.AddTerm( 4,VariableType.Original, "X1" );
+            subject3.AddTerm( 3,VariableType.Original, "X2" );
+            subject3.AddTerm( 3,VariableType.Original, "X3" );
+            subject3.AddTerm( 4,VariableType.Original, "X4" );
 
             simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2, subject3 };
 
@@ -403,19 +403,19 @@ namespace MsTest
 
             simplex.GoalType = ObjectiveType.Minumum;
             simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 40, VarType = VariableType.Original, Vector = "X1" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 36, VarType = VariableType.Original, Vector = "X2" });
+            simplex.ObjectiveFunction.AddTerm( 40,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( 36,VariableType.Original, "X2" );
 
             Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.LessEquals, RightHandValue = 8 };
-            subject1.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X1" });
+            subject1.AddTerm( 3,VariableType.Original, "X1" );
 
             Subject subject2 = new Subject() { Index = 2, RowLabel = "R2", Equality = EquailtyType.LessEquals, RightHandValue = 10 };
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
+            subject2.AddTerm( 1,VariableType.Original, "X2" );
 
 
             Subject subject3 = new Subject() { Index = 2, RowLabel = "R3", Equality = EquailtyType.GreaterEquals, RightHandValue = 45 };
-            subject3.Terms.Add(new Term() { Factor = 5, VarType = VariableType.Original, Vector = "X1" });
-            subject3.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X2" });
+            subject3.AddTerm( 5,VariableType.Original, "X1" );
+            subject3.AddTerm( 3,VariableType.Original, "X2" );
 
             simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2, subject3 };
 
@@ -436,20 +436,20 @@ namespace MsTest
 
             simplex.GoalType = ObjectiveType.Maximum;
             simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X3" });
+            simplex.ObjectiveFunction.AddTerm( 1,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( 3,VariableType.Original, "X3" );
 
             Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.Equals, RightHandValue = 5 };
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject1.Terms.Add(new Term() { Factor = 3, VarType = VariableType.Original, Vector = "X2" });
-            subject1.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X3" });
-            subject1.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X4" });
+            subject1.AddTerm( 1,VariableType.Original, "X1" );
+            subject1.AddTerm( 3,VariableType.Original, "X2" );
+            subject1.AddTerm( -1,VariableType.Original, "X3" );
+            subject1.AddTerm( 2,VariableType.Original, "X4" );
 
             Subject subject2 = new Subject() { Index = 2, RowLabel = "R3", Equality = EquailtyType.GreaterEquals, RightHandValue = -1 };
-            subject2.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject2.Terms.Add(new Term() { Factor = -3, VarType = VariableType.Original, Vector = "X2" });
-            subject2.Terms.Add(new Term() { Factor = 5, VarType = VariableType.Original, Vector = "X3" });
-            subject2.Terms.Add(new Term() { Factor = -4, VarType = VariableType.Original, Vector = "X4" });
+            subject2.AddTerm( 1,VariableType.Original, "X1" );
+            subject2.AddTerm( -3,VariableType.Original, "X2" );
+            subject2.AddTerm( 5,VariableType.Original, "X3" );
+            subject2.AddTerm( -4,VariableType.Original, "X4" );
 
             simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2 };
 
@@ -470,27 +470,90 @@ namespace MsTest
 
             simplex.GoalType = ObjectiveType.Minumum;
             simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X1" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = -2, VarType = VariableType.Original, Vector = "X2" });
-            simplex.ObjectiveFunction.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
+            simplex.ObjectiveFunction.AddTerm( -1,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( -2,VariableType.Original, "X2" );
+            simplex.ObjectiveFunction.AddTerm( 1,VariableType.Original, "X3" );
 
             Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.LessEquals, RightHandValue = 4 };
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X1" });
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
-            subject1.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X3" });
+            subject1.AddTerm( 1,VariableType.Original, "X1" );
+            subject1.AddTerm( 1,VariableType.Original, "X2" );
+            subject1.AddTerm( 1,VariableType.Original, "X3" );
 
             Subject subject2 = new Subject() { Index = 2, RowLabel = "R3", Equality = EquailtyType.LessEquals, RightHandValue = 6 };
-            subject2.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Original, Vector = "X1" });
-            subject2.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X2" });
-            subject2.Terms.Add(new Term() { Factor = -2, VarType = VariableType.Original, Vector = "X3" });
+            subject2.AddTerm( -1,VariableType.Original, "X1" );
+            subject2.AddTerm( 2,VariableType.Original, "X2" );
+            subject2.AddTerm( -2,VariableType.Original, "X3" );
 
             Subject subject3 = new Subject() { Index = 2, RowLabel = "R3", Equality = EquailtyType.LessEquals, RightHandValue = 5 };
-            subject3.Terms.Add(new Term() { Factor = 2, VarType = VariableType.Original, Vector = "X1" });
-            subject3.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Original, Vector = "X2" });
+            subject3.AddTerm( 2,VariableType.Original, "X1" );
+            subject3.AddTerm( 1,VariableType.Original, "X2" );
 
             simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject1, subject2, subject3 };
 
 
+            return simplex;
+        }
+
+        internal static SimplexModel CreateSimplexModel12()
+        {
+            //http://web.mit.edu/15.053/www/AMP-Appendix-B.pdf
+            //http://web.mit.edu/15.053/www/AMP-Chapter-02.pdf
+            /*
+             * Maximize z = −3x1 + 3x2 + 2x3 − 2x4 − x5 + 4x6,
+             * subject to:
+             * x1 − x2 + x3 − x4 − 4x5 + 2x6 >= 4,
+             * −3x1 + 3x2 + x3 − x4 − 2x5 <= 6,
+             * −x3 + x4 + x6  = 1,
+             * x1 − x2 + x3 − x4 − x5 = 0,
+            */
+            SimplexModel simplex = new SimplexModel();
+
+            simplex.GoalType = ObjectiveType.Maximum;
+            simplex.ObjectiveFunction = new Subject() { Index = 0, RowLabel = "RO" };
+            simplex.ObjectiveFunction.AddTerm( -3,VariableType.Original, "X1" );
+            simplex.ObjectiveFunction.AddTerm( 3,VariableType.Original, "X2" );
+            simplex.ObjectiveFunction.AddTerm( 2,VariableType.Original, "X3" );
+            simplex.ObjectiveFunction.AddTerm( -2,VariableType.Original, "X4" );
+            simplex.ObjectiveFunction.AddTerm( -1,VariableType.Original, "X5" );
+            simplex.ObjectiveFunction.AddTerm( 4,VariableType.Original, "X6" );
+
+
+            Subject subject1 = new Subject() { Index = 1, RowLabel = "R1", Equality = EquailtyType.Equals, RightHandValue = 4 };
+            subject1.AddTerm( 1,VariableType.Original, "X1" );
+            subject1.AddTerm( -1,VariableType.Original, "X2" );
+            subject1.AddTerm( 1,VariableType.Original, "X3" );
+            subject1.AddTerm( -1,VariableType.Original, "X4" );
+            subject1.AddTerm( -4,VariableType.Original, "X5" );
+            subject1.AddTerm( 2,VariableType.Original, "X6" );
+            //subject1.AddTerm( -1,VariableType.Original, "X7" );
+
+            Subject subject2 = new Subject() { Index = 2, RowLabel = "R2", Equality = EquailtyType.LessEquals, RightHandValue = 6 };
+            subject2.AddTerm( -3,VariableType.Original, "X1" );
+            subject2.AddTerm( 3,VariableType.Original, "X2" );
+            subject2.AddTerm( 1,VariableType.Original, "X3" );
+            subject2.AddTerm( -1,VariableType.Original, "X4" );
+            subject2.AddTerm( -2,VariableType.Original, "X5" );
+
+            Subject subject3 = new Subject() { Index = 3, RowLabel = "R3", Equality = EquailtyType.Equals, RightHandValue = 1 };
+            subject3.AddTerm( -1,VariableType.Original, "X3" );
+            subject3.AddTerm( 1,VariableType.Original, "X4" );
+            subject3.AddTerm( 1,VariableType.Original, "X6" );
+
+
+            Subject subject4 = new Subject() { Index = 4, RowLabel = "R4", Equality = EquailtyType.Equals, RightHandValue = 0 };
+            subject4.AddTerm( 1,VariableType.Original, "X1" );
+            subject4.AddTerm( -1,VariableType.Original, "X2" );
+            subject4.AddTerm( 1,VariableType.Original, "X3" );
+            subject4.AddTerm( -1,VariableType.Original, "X4" );
+            subject4.AddTerm( -1,VariableType.Original, "X5" );
+
+
+
+            //simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject2, subject3, subject4, subject5, subject6, subject7, subject8, subject9 };
+            simplex.Subjects = new System.Collections.Generic.List<Subject>() { subject2, subject1,  subject3, subject4};
+
+            /*
+            */
             return simplex;
         }
     }

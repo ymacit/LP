@@ -14,15 +14,14 @@ using Simplex.Helper;
 
 namespace Simplex.Analysis
 {
+    [Serializable]
     internal class RevisedSimplexModel : SimplexModelDecorator
     {
-        Matrix m_PhaseOneBasisMatrix = null;
-        Matrix m_PhaseOneNonBasisMatrix = null;
-        Matrix m_PhaseOneBasisRightHandMatrix = null;
-        Matrix m_PhaseOneBasisObjectiveMatrix = null;
-        Matrix m_PhaseOneNonBasisObjectiveMatrix = null;
+        Matrix m_PhaseBasisObjectiveMatrix = null;
+        Matrix m_PhaseNonBasisObjectiveMatrix = null;
 
         Matrix m_BasisMatrix = null;
+        Matrix m_BasisInverseMatrix = null;
         Matrix m_NonBasisMatrix = null;
         Matrix m_BasisRightHandMatrix = null;
         Matrix m_BasisObjectiveMatrix = null;
@@ -41,6 +40,12 @@ namespace Simplex.Analysis
         {
             get { return m_BasisMatrix; }
             set { m_BasisMatrix = value; }
+        }
+
+        internal Matrix BasisInverseMatrix
+        {
+            get { return m_BasisInverseMatrix; }
+            set { m_BasisInverseMatrix = value; }
         }
 
         internal Matrix NonBasisMatrix
@@ -66,34 +71,17 @@ namespace Simplex.Analysis
             set { m_BasisNonObjectiveMatrix = value; }
         }
 
-        internal Matrix PhaseOneBasisMatrix
+
+        internal Matrix PhaseBasisObjectiveMatrix
         {
-            get { return m_PhaseOneBasisMatrix; }
-            set { m_PhaseOneBasisMatrix = value; }
+            get { return m_PhaseBasisObjectiveMatrix; }
+            set { m_PhaseBasisObjectiveMatrix = value; }
         }
 
-        internal Matrix PhaseOneNonBasisMatrix
+        internal Matrix PhaseNonBasisObjectiveMatrix
         {
-            get { return m_PhaseOneNonBasisMatrix; }
-            set { m_PhaseOneNonBasisMatrix = value; }
-        }
-
-        internal Matrix PhaseOneBasisRightHandMatrix
-        {
-            get { return m_PhaseOneBasisRightHandMatrix; }
-            set { m_PhaseOneBasisRightHandMatrix = value; }
-        }
-
-        internal Matrix PhaseOneBasisObjectiveMatrix
-        {
-            get { return m_PhaseOneBasisObjectiveMatrix; }
-            set { m_PhaseOneBasisObjectiveMatrix = value; }
-        }
-
-        internal Matrix PhaseNonOneBasisObjectiveMatrix
-        {
-            get { return m_PhaseOneNonBasisObjectiveMatrix; }
-            set { m_PhaseOneNonBasisObjectiveMatrix = value; }
+            get { return m_PhaseNonBasisObjectiveMatrix; }
+            set { m_PhaseNonBasisObjectiveMatrix = value; }
         }
     }
 }

@@ -317,7 +317,11 @@ namespace Simplex.Helper
             return inv;
         }
 
-
+        public Matrix Invert(bool resetLU )
+        {
+            L = null;
+            return Invert();
+        }
         public double Det()                         // Function for determinant
         {
             if (L == null) MakeLU();

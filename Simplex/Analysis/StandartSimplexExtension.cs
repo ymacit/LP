@@ -22,6 +22,13 @@ namespace Simplex.Analysis
             double[,] tmp_constarintMatrix = new double[rowCount, columnCount];
             double[,] tmp_RightHandMatrix = new double[rowCount + 1, 2]; // +1 is for objective function, second dimension is for ratio 
 
+            List<int> tmp_basicVariables = new List<int>();
+
+            for (int i = 0; i < columnCount; i++)
+            {
+                tmp_basicVariables.Add(-1);
+            }
+
             if (model.IsTwoPhase)
             {
                 for (int j = 0; j < columnCount; j++)
@@ -46,7 +53,7 @@ namespace Simplex.Analysis
                     tmp_constarintMatrix[i, j] = model.Subjects[i].Terms[j].Factor;
 
                     //set the basic variable flag as j
-                    if (model.Subjects[i].Terms[j].isBasic)
+                    if (model.Subjects[i].Terms[j].Basic)
                         tmp_RightHandMatrix[i, 1] = j;
                 }
                 tmp_RightHandMatrix[i, 0] = model.Subjects[i].RightHandValue;
@@ -59,96 +66,6 @@ namespace Simplex.Analysis
             model.VarTypes = tmp_types;
 
         }
-        internal static void CreatePhaseOneObjective(this StandartSimplexModel model)
-        {
-            if (!model.IsTwoPhase)
-                return;
-
-            //Steps
-            //#.Modify the constraints so that the RHS of each constraint is nonnegative (This requires that each constraint with a negative RHS be multiplied by - 1.Remember that if you multiply an inequality by any negative number, the direction of the inequality is reversed!). After modification, identify each constraint as a ≤, ≥ or = constraint.
-            //#.Convert each inequality constraint to standard form(If constraint i is a ≤ constraint, we add a slack variable si; and if constraint i is a ≥ constraint, we subtract an excess variable ei).
-
-            //Steps
-            //1.Add an artificial variable ai to the constraints identified as ≥ or = constraints at the end of Step 1.Also add the sign restriction ai ≥ 0.
-            //2.In the phase I, ignore the original LP’s objective function, instead solve an LP whose objective function is minimizing w = ai(sum of all the artificial variables).The act of solving the Phase I LP will force the artificial variables to be zero.
-            //3.Since each artificial variable will be in the starting basis, all artificial variables must be eliminated from row 0 before beginning the simplex. Now solve the transformed problem by the simplex.
-
-            //1) add all of artificial variables in orginal objective function to the phaseonefunction
-            //Get the list of artificial variables in orginal objective function
-            List<Term> tmp_artificialterms = model.ObjectiveFunction.Terms.Where(term => term.VarType == VariableType.Artificial).ToList();
-            foreach (Term item in tmp_artificialterms)
-            {
-                model.PhaseObjectiveFunction.Terms.Add(new Term() { Factor = 1, VarType = item.VarType, Vector = item.Vector });
-            }
-
-            ////2) change signt the factor value of term in new objective fonction terms and add positive balance variable ("w")
-            foreach (Term term in model.PhaseObjectiveFunction.Terms)
-            {
-                term.Factor *= -1;
-            }
-            //3) add balance type variable ("w") to the new objective function
-            //model.PhaseObjectiveFunction.Terms.Insert(0, new Term() { Factor = 1, VarType = VariableType.Balance, Vector = "w", Index = 0 });
-
-            //Let us define new objective function as negative (-w)
-            model.PhaseObjectiveFunction.RightHandValue = 0;
-
-            //4) find all artificial variable that has factor value is equal to 0 in cosntarint terms and put the artificial variable value in the new objective function;
-            //   all artificial variables must be eliminated from row 0 before we can solve Phase I
-            Term tmp_term = null;
-            foreach (Subject constraint in model.Subjects)
-            {
-                if (constraint.Terms.Any(term => term.VarType == VariableType.Artificial && term.Factor == 1))
-                {
-                    //Find 
-                    List<Term> tmp_willaddedterms = constraint.Terms.Where(term => term.Factor != 0).ToList();
-                    foreach (Term item in tmp_willaddedterms)
-                    {
-                        tmp_term = null;
-                        tmp_term = model.PhaseObjectiveFunction.Terms.Find(term => term.Vector.Equals(item.Vector));
-                        if (tmp_term != null)
-                            tmp_term.Factor += item.Factor;
-                        else
-                            model.PhaseObjectiveFunction.Terms.Add(new Term() { Factor = item.Factor, VarType = item.VarType, Vector = item.Vector });
-                    }
-                    if (tmp_willaddedterms.Count > 0)
-                    {
-                        model.PhaseObjectiveFunction.RightHandValue += constraint.RightHandValue;
-                    }
-                }
-            }
-
-            //5)Add other variable that has zero factor value from objective function
-            foreach (Term item in model.ObjectiveFunction.Terms)
-            {
-                if (item.VarType == VariableType.Balance)
-                    continue;
-                if (!model.PhaseObjectiveFunction.IsVectorContained(item.Vector))
-                    model.PhaseObjectiveFunction.Terms.Add(new Term() { Vector = item.Vector, Factor = 0, VarType = item.VarType });
-            }
-
-            //6) sort the terms of new objective 
-            TermComparer tc = new TermComparer();
-            model.PhaseObjectiveFunction.Terms.Sort(tc);
-        }
-        internal static void PhaseOnePrintMatrix(this StandartSimplexModel model)
-        {
-            model.PrintMatrix();
-
-            string tmp_sign = string.Empty;
-            System.Diagnostics.Debug.WriteLine("Goal :" + model.GoalType.ToString());
-            System.Diagnostics.Debug.Write("New Objective Function - " + model.GoalType.ToString() + ": ");
-            foreach (Term item in model.PhaseObjectiveFunction.Terms)
-            {
-                tmp_sign = string.Empty;
-                if (Math.Sign(item.Factor) > -1)
-                    tmp_sign = "+";
-                System.Diagnostics.Debug.Write(tmp_sign + item.Factor + "*" + item.Vector + " ");
-            }
-            System.Diagnostics.Debug.Write(" = ");
-            System.Diagnostics.Debug.WriteLine(model.PhaseObjectiveFunction.RightHandValue);
-            System.Diagnostics.Debug.WriteLine("*********************************");
-        }
-
         internal static void TruncatePhaseResult(this StandartSimplexModel model, Solution solution)
         {
             //transfer the phaseoneobjective function factors

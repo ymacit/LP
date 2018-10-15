@@ -22,6 +22,10 @@ namespace Simplex.Model
             return m_List.Any(vec => vec.Vector == vector);
         }
 
+        public void AddTerm(double Factor, VariableType VarType, string Vector)
+        {
+            m_List.Add(new Term() { Factor = Factor, Core = new TermCore() { VarType = VarType, Vector = Vector } });
+        }
         public int Index
         {
             get { return m_index; }

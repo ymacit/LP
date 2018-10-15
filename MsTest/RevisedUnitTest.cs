@@ -97,6 +97,16 @@ namespace MsTest
             Solution tmp_solution = SolveProblem(simplex);
             Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
         }
+
+        [TestMethod]
+        public void SolveRevisedSimplexModel12_Test()
+        {
+            //two phase
+            SimplexModel simplex = TestHelper.CreateSimplexModel12();
+            Solution tmp_solution = SolveProblem(simplex);
+            Assert.AreEqual(SolutionQuality.Optimal, tmp_solution.Quality, "success");
+        }
+
         private Solution SolveProblem(SimplexModel model)
         {
             Solution tmp_solution = null;

@@ -8,17 +8,21 @@ namespace Simplex.Model
     [Serializable]
     public class Term
     {
-        VariableType m_VariableType = VariableType.Original;
-
+        TermCore m_TermCore = null;
         double m_FactorValue = 0;
-        string m_label = string.Empty;
         int m_index = -1;
-        bool m_isBasic = false;
-        
+
+        public TermCore Core
+        {
+            get { return m_TermCore; }
+            set { m_TermCore = value; }
+        }
+
+
         public VariableType VarType
         {
-            get { return m_VariableType; }
-            set { m_VariableType = value; }
+            get { return m_TermCore.VarType; }
+            set { m_TermCore.VarType = value; }
         }
 
         public double Factor
@@ -29,8 +33,8 @@ namespace Simplex.Model
 
         public String Vector
         {
-            get { return m_label; }
-            set { m_label = value; }
+            get { return m_TermCore.Vector; }
+            set { m_TermCore.Vector = value; }
         }
 
         public int Index
@@ -39,20 +43,10 @@ namespace Simplex.Model
             set { m_index = value; }
         }
 
-        public bool isConstant
+        public bool Basic
         {
-            get
-            {
-                if (m_label != null && m_label.Trim().Length > 0)
-                    return false;
-                else
-                    return true;
-            }
-        }
-        public bool isBasic
-        {
-            get { return m_isBasic;}
-            set { m_isBasic = value; }
+            get { return m_TermCore.Basic; }
+            set { m_TermCore.Basic = value; }
         }
     }
 }

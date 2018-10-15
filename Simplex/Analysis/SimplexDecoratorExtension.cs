@@ -24,25 +24,6 @@ namespace Simplex.Analysis
             //1) Check and update Right Hand Side- RHS value for positive 
             UpdateNegativeRHSValues(model);
 
-            Dictionary<string, Term> m_VectorList = new Dictionary<string, Term>();
-            //1.X) find the native varibles count in model
-            foreach (Subject constarint in model.Subjects)
-            {
-
-                foreach (Term term in constarint.Terms)
-                {
-                    if (!m_VectorList.ContainsKey(term.Vector))
-                        m_VectorList.Add(term.Vector, term);
-                }
-            }
-            //1.X) if one of term contained only one cosntarint that ise basic varibale, let us find it
-            foreach (KeyValuePair<string, Term> item in m_VectorList)
-            {
-                List<Subject> tmp_list = model.Subjects.Where(subject => subject.Terms.Any(term => term.Vector.Equals(item.Key))).ToList();
-                if (tmp_list.Count == 1 && tmp_list[0].Equality == EquailtyType.Equals)
-                    item.Value.isBasic = true;
-            }
-
             //2) Add variables for BFS
             //2.1) add slack,excess and artificial Term to constarints
             string m_slackPrefix = "s";
@@ -57,72 +38,56 @@ namespace Simplex.Analysis
                 switch (constarint.Equality)
                 {
                     case EquailtyType.LessEquals: // if constarint equation <= then plus Slack variable at the left side
-                        constarint.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Slack, Vector = m_slackPrefix + m_slackcount.ToString(), Index = constarint.Terms.Count - 1 });
+                        constarint.AddTerm(1, VariableType.Slack, m_slackPrefix + m_slackcount.ToString());
                         m_slackcount++;
                         break;
                     case EquailtyType.GreaterEquals: // if constarint equation >= then minus excess variable and plus artificial variable at the left side
-                        constarint.Terms.Add(new Term() { Factor = -1, VarType = VariableType.Excess, Vector = m_excessPrefix + m_excesscount.ToString(), Index = constarint.Terms.Count - 1 });
-                        constarint.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Artificial, Vector = m_artificialPrefix + m_artificialcount.ToString(), Index = constarint.Terms.Count - 1 });
+                        constarint.AddTerm( -1, VariableType.Excess, m_excessPrefix + m_excesscount.ToString());
+                        constarint.AddTerm( 1, VariableType.Artificial, m_artificialPrefix + m_artificialcount.ToString());
                         m_excesscount++;
                         m_artificialcount++;
                         break;
                     default: // if constarint equation is eqal and subject dos nat contain basic term, then plus artificial variable at the left side
-                        if (!constarint.Terms.Any(term => term.isBasic == true))
+                        if (!constarint.Terms.Any(term => term.Basic == true))
                         {
-                            constarint.Terms.Add(new Term() { Factor = 1, VarType = VariableType.Artificial, Vector = m_artificialPrefix + m_artificialcount.ToString(), Index = constarint.Terms.Count - 1 });
+                            constarint.AddTerm( 1, VariableType.Artificial, m_artificialPrefix + m_artificialcount.ToString());
                             m_artificialcount++;
                         }
                         break;
                 }
             }
 
-            //4) change signt the factor value of term in objective fonction terms and add positive balance variable ("Z")
+
+            //3) find the varibles in model and distinct them
+            Dictionary<string, TermCore> m_VectorList = new Dictionary<string, TermCore>();
+            //3.1) Check and collect vector label for objective funtion
             foreach (Term term in model.ObjectiveFunction.Terms)
             {
-                term.Factor *= -1;
+                if (!m_VectorList.ContainsKey(term.Vector))
+                    m_VectorList.Add(term.Vector, term.Core);
             }
-            model.ObjectiveFunction.RightHandValue = 0;
-            //model.ObjectiveFunction.Terms.Insert(0, new Term() { Factor = 1, VarType = VariableType.Balance, Vector = "Z", Index = 0 });
-
-
-            //3) find the varibles count in model
-            //3.1) //Check and collect vector label for constranit
+            //3.2) //Check and collect vector label for constranit
             foreach (Subject constarint in model.Subjects)
             {
 
                 foreach (Term term in constarint.Terms)
                 {
                     if (!m_VectorList.ContainsKey(term.Vector))
-                        m_VectorList.Add(term.Vector, term);
+                        m_VectorList.Add(term.Vector, term.Core);
                 }
-            }
-
-            //3.X) if one of term that is non original contained only one cosntarint that ise basic varibale, let us find it
-            foreach (KeyValuePair<string, Term> item in m_VectorList)
-            {
-                List<Subject> tmp_list = model.Subjects.Where(subject => subject.Terms.Any(term => term.Vector.Equals(item.Key) && term.VarType != VariableType.Original && term.Factor == 1)).ToList();
-                if (tmp_list.Count == 1)
-                    item.Value.isBasic = true;
-            }
-
-            //3.2) Check and collect vector label for objective funtion
-            foreach (Term term in model.ObjectiveFunction.Terms)
-            {
-                if (!m_VectorList.ContainsKey(term.Vector))
-                    m_VectorList.Add(term.Vector, term);
             }
 
             //3) expand the objective function and all constarints with not exsit variable in Clause 
             //sort the vector list
-            foreach (KeyValuePair<string, Term> item in m_VectorList)
+            foreach (KeyValuePair<string, TermCore> item in m_VectorList)
             {
                 if (!model.ObjectiveFunction.IsVectorContained(item.Key))
-                    model.ObjectiveFunction.Terms.Add(new Term() { Vector = item.Key, Factor = 0, VarType = item.Value.VarType, isBasic=item.Value.isBasic });
+                    model.ObjectiveFunction.Terms.Add(new Term() { Factor = 0, Core=item.Value});
 
                 foreach (Subject constarint in model.Subjects)
                 {
                     if (!constarint.IsVectorContained(item.Key))
-                        constarint.Terms.Add(new Term() { Vector = item.Key, Factor = 0, VarType = item.Value.VarType });
+                        constarint.Terms.Add(new Term() {Factor = 0, Core = item.Value });
                 }
             }
 
@@ -135,9 +100,159 @@ namespace Simplex.Analysis
                 constarint.Terms.Sort(tc);
             }
 
+            //4) change signt the factor value of term in objective fonction terms and add positive balance variable ("Z")
+            foreach (Term term in model.ObjectiveFunction.Terms)
+            {
+                term.Factor *= -1;
+            }
+            model.ObjectiveFunction.RightHandValue = 0;
+
+            //find and flag basic variable
+            // if one of term that is non original contained only one cosntarint that ise basic varibale, let us find it
+            int tmp_zeroCounter = 0;
+            int tmp_OneCounter = 0;
+            int tmp_rowcount = model.Subjects.Count;
+            for (int i = 0; i < model.ObjectiveFunction.Terms.Count; i++)
+            {
+                tmp_zeroCounter = 0;
+                tmp_OneCounter = 0;
+                foreach (Subject constarint in model.Subjects)
+                {
+                    if (constarint.Terms[i].Factor == 0)
+                        tmp_zeroCounter++;
+                    else if (constarint.Terms[i].Factor == 1)
+                        tmp_OneCounter++;
+                }
+                if (tmp_OneCounter == 1 && (tmp_OneCounter + tmp_zeroCounter == tmp_rowcount))
+                    model.ObjectiveFunction.Terms[i].Basic = true;
+                else
+                    model.ObjectiveFunction.Terms[i].Basic = false;
+            }
+
+            ////reflect basic flag from objective function to the cosntarint 
+            //for (int i = 0; i < model.ObjectiveFunction.Terms.Count; i++)
+            //{
+            //    foreach (Subject constarint in model.Subjects)
+            //    {
+            //        constarint.Terms[i].Basic= model.ObjectiveFunction.Terms[i].Basic;
+            //    }
+            //}
+
             //5) check the term count is equeal for objective function and all of constarints
 
             #endregion
+
+            #region UnitMatrix
+
+            //List<Term> tmp_basicVariableslist = model.ObjectiveFunction.Terms.Where(item => item.isBasic).ToList();
+            //Dictionary<Term, int> tmp_UnitMatrixDictionary = new Dictionary<Term, int>();
+            //int tmp_index = -1;
+            //foreach (Term item in tmp_basicVariableslist)
+            //{
+            //    tmp_index = -1;
+            //    foreach (Subject constarint in model.Subjects)
+            //    {
+            //        tmp_index = constarint.Terms.FindIndex(consitem => consitem.Vector == item.Vector && consitem.Factor == 1);
+            //        if (tmp_index > -1)
+            //        {
+            //            tmp_UnitMatrixDictionary.Add(item, tmp_index);
+            //            break;
+            //        }
+            //    }
+            //}
+
+            #endregion
+        }
+
+        internal static void CreatePhaseOneObjective(this SimplexModelDecorator model)
+        {
+            if (!model.IsTwoPhase)
+                return;
+
+            //Steps
+            //#.Modify the constraints so that the RHS of each constraint is nonnegative (This requires that each constraint with a negative RHS be multiplied by - 1.Remember that if you multiply an inequality by any negative number, the direction of the inequality is reversed!). After modification, identify each constraint as a ≤, ≥ or = constraint.
+            //#.Convert each inequality constraint to standard form(If constraint i is a ≤ constraint, we add a slack variable si; and if constraint i is a ≥ constraint, we subtract an excess variable ei).
+
+            //Steps
+            //1.Add an artificial variable ai to the constraints identified as ≥ or = constraints at the end of Step 1.Also add the sign restriction ai ≥ 0.
+            //2.In the phase I, ignore the original LP’s objective function, instead solve an LP whose objective function is minimizing w = ai(sum of all the artificial variables).The act of solving the Phase I LP will force the artificial variables to be zero.
+            //3.Since each artificial variable will be in the starting basis, all artificial variables must be eliminated from row 0 before beginning the simplex. Now solve the transformed problem by the simplex.
+
+            //1) add all of artificial variables in orginal objective function to the phaseonefunction
+            //copy the objective function
+            foreach (Term  item in model.ObjectiveFunction.Terms)
+            {
+                if(item.VarType== VariableType.Artificial)
+                    model.PhaseObjectiveFunction.Terms.Add(new Term() { Factor = 1, Core = item.Core });
+                else
+                    model.PhaseObjectiveFunction.Terms.Add(new Term() { Factor = 0, Core = item.Core});
+            }
+
+            ////2) change signt the factor value of term in new objective fonction terms and add positive balance variable ("w")
+            //foreach (Term term in model.PhaseObjectiveFunction.Terms)
+            //{
+            //    term.Factor *= -1;
+            //}
+            //3) add balance type variable ("w") to the new objective function
+            //model.PhaseObjectiveFunction.Terms.Insert(0, new Term() { Factor = 1, VarType = VariableType.Balance, Vector = "w", Index = 0 });
+
+            //Let us define new objective function as negative (-w)
+            model.PhaseObjectiveFunction.RightHandValue = 0;
+
+            //4) find all artificial variable that has factor value is equal to 0 in cosntarint terms and put the artificial variable value in the new objective function;
+            //   all artificial variables must be eliminated from row 0 before we can solve Phase I
+            foreach (Subject constraint in model.Subjects)
+            {
+                if (constraint.Terms.Any(term => term.VarType == VariableType.Artificial && term.Factor == 1))
+                {
+                    for (int i = 0; i < constraint.Terms.Count; i++)
+                    {
+                        model.PhaseObjectiveFunction.Terms[i].Factor -= constraint.Terms[i].Factor;
+                    }
+                    model.PhaseObjectiveFunction.RightHandValue -= constraint.RightHandValue;
+                }
+
+                //if (constraint.Terms.Any(term => term.Basic && term.Factor == 1))
+                //{
+                //    //Find 
+                //    List<Term> tmp_willaddedterms = constraint.Terms.Where(term => term.Factor != 0).ToList();
+                //    foreach (Term item in tmp_willaddedterms)
+                //    {
+                //        //tmp_term = null;
+                //        tmp_term = model.PhaseObjectiveFunction.Terms.Find(term => term.Vector.Equals(item.Vector));
+                //        //if (tmp_term != null)
+                //        tmp_term.Factor -= item.Factor;
+                //        //else
+                //        //    model.PhaseObjectiveFunction.Terms.Add(new Term() { Factor = item.Factor, VarType = item.VarType, Vector = item.Vector });
+                //    }
+                //    if (tmp_willaddedterms.Count > 0)
+                //    {
+                //        model.PhaseObjectiveFunction.RightHandValue -= constraint.RightHandValue;
+                //    }
+                //}
+            }
+
+            //6) sort the terms of new objective 
+            TermComparer tc = new TermComparer();
+            model.PhaseObjectiveFunction.Terms.Sort(tc);
+        }
+        internal static void PhaseOnePrintMatrix(this StandartSimplexModel model)
+        {
+            model.PrintMatrix();
+
+            string tmp_sign = string.Empty;
+            System.Diagnostics.Debug.WriteLine("Goal :" + model.GoalType.ToString());
+            System.Diagnostics.Debug.Write("New Objective Function - " + model.GoalType.ToString() + ": ");
+            foreach (Term item in model.PhaseObjectiveFunction.Terms)
+            {
+                tmp_sign = string.Empty;
+                if (Math.Sign(item.Factor) > -1)
+                    tmp_sign = "+";
+                System.Diagnostics.Debug.Write(tmp_sign + item.Factor + "*" + item.Vector + " ");
+            }
+            System.Diagnostics.Debug.Write(" = ");
+            System.Diagnostics.Debug.WriteLine(model.PhaseObjectiveFunction.RightHandValue);
+            System.Diagnostics.Debug.WriteLine("*********************************");
         }
 
         public static TestMessage CheckBFS(this ISimplexModel model)
@@ -229,6 +344,17 @@ namespace Simplex.Analysis
                 formatter.Serialize(ms, basemodel);
                 ms.Position = 0;
                 return (SimplexModel)formatter.Deserialize(ms);
+            }
+        }
+
+        public static object DeepCopy( Type basemodel)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(ms, basemodel);
+                ms.Position = 0;
+                return formatter.Deserialize(ms);
             }
         }
     }

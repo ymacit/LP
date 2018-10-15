@@ -59,7 +59,7 @@ namespace Simplex.Analysis
              */
             VariableType tmp_inclusive = VariableType.Original | VariableType.Slack | VariableType.Excess;
 
-            tmp_solution = Solve(simplexModel.VarTypes, tmp_inclusive, simplexModel.ArtificialObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix,true);
+            tmp_solution = Solve(simplexModel.VarTypes, tmp_inclusive, simplexModel.ArtificialObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.BasicVariables, true);
             //Solving the Phase I LP will result in one of the following three cases:
             //I.Case : If w = 0 
             //TODO test //tmp_solution.RightHandValues[tmp_solution.RightHandValues.GetLength(0) - 1, 0] = 0;
@@ -80,7 +80,7 @@ namespace Simplex.Analysis
                 //  ii.Combine the original objective function with the constraints from the optimal Phase I tableau(Phase II LP).If original objective function coefficients of BVs are nonzero row operations are done.
                 //  iii.Solve Phase II LP using the simplex method.The optimal solution to the Phase II LP is the optimal solution to the original LP.
                 //if ( )
-                tmp_solution = Solve(simplexModel.VarTypes, tmp_inclusive, simplexModel.ObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.GoalType == ObjectiveType.Minumum);
+                tmp_solution = Solve(simplexModel.VarTypes, tmp_inclusive, simplexModel.ObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.BasicVariables, simplexModel.GoalType == ObjectiveType.Minumum);
                 System.Diagnostics.Debug.WriteLine("Solution " + tmp_solution.Quality.ToString());
             }
             //II.Case  : If w > 0 then the original LP has no feasible solution(stop here).
@@ -89,6 +89,11 @@ namespace Simplex.Analysis
                 tmp_solution.Quality = SolutionQuality.Infeasible;
             }
             //assign the actual value to the result terms
+            tmp_solution.BasicVariables = new List<int>();
+            for (int i = 0; i < simplexModel.RightHandMatrix.RowCount-1; i++)
+            {
+                tmp_solution.BasicVariables.Add((int)simplexModel.RightHandMatrix[i, 1]);
+            }
             PrepareSolutionResult(simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.ObjectiveFunction.Terms, tmp_solution);
             return tmp_solution;
         }
@@ -101,7 +106,7 @@ namespace Simplex.Analysis
             //simplexModel.CreateMatrixSet();
             VariableType tmp_inclusive = VariableType.Original | VariableType.Slack;
 
-            Solution tmp_solution= Solve( simplexModel.VarTypes, tmp_inclusive, simplexModel.ObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.GoalType == ObjectiveType.Minumum) ;
+            Solution tmp_solution= Solve( simplexModel.VarTypes, tmp_inclusive, simplexModel.ObjectiveMatrix, simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.BasicVariables, simplexModel.GoalType == ObjectiveType.Minumum) ;
 
             PrepareSolutionResult(simplexModel.ConstarintMatrix, simplexModel.RightHandMatrix, simplexModel.ObjectiveFunction.Terms, tmp_solution);
 
@@ -109,10 +114,10 @@ namespace Simplex.Analysis
 
         }
 
-        private Solution Solve( VariableType[] types, VariableType InclusiveTypeBits, Matrix objective, Matrix constarints, Matrix RightHandValues, bool MaxEntering)
+        private Solution Solve( VariableType[] types, VariableType InclusiveTypeBits, Matrix objective, Matrix constarints, Matrix RightHandValues, List<int> basicVariables,  bool MaxEntering)
         {
             Solution tmp_solution = new Solution() { Quality = Enums.SolutionQuality.Infeasible };
-            PrintMatrix(objective, constarints, RightHandValues.GetCol(0), RightHandValues.GetCol(1), RightHandValues[RightHandValues.RowCount-1,0],  0);
+            PrintMatrix(objective, constarints, RightHandValues.GetCol(0), basicVariables, RightHandValues[RightHandValues.RowCount-1,0],  0);
             int tmp_ObjectiveLeftValueIndex = RightHandValues.RowCount - 1;
             bool tmp_continue = true;
             int tmp_iteration = 1;
@@ -121,6 +126,8 @@ namespace Simplex.Analysis
             int tmp_PivotRowIndex = -1;
             double tmp_MinLeavingValue = double.MaxValue;
             double tmp_MinCalculateValue = 0;
+            List<int> tmp_basics = new List<int>();
+            List<int> tmp_basicRows = new List<int>();
             //Round the matrix values
             for (int i = 0; i < constarints.RowCount; i++)
             {
@@ -133,14 +140,17 @@ namespace Simplex.Analysis
             for (int i = 0; i < RightHandValues.RowCount; i++)
             {
                 RightHandValues[i,0] = Math.Round(RightHandValues[i,0], m_digitRound);
+                tmp_basics.Add((int)RightHandValues[i, 1]);
             }
+
+            tmp_basics.RemoveAt(RightHandValues.RowCount - 1);
 
             while (tmp_continue)
             {
                 //1) Select entering value for original variables in objective function. if maximize, select min value (in negative), if minimize select max value (in positive) for original variables. İf selection is not exist, decide for solution state.
                 // Maksimizasyonda en negatif değere sahip değişken,
                 // Minimizasyonda ise en pozitif değere sahip değişken seçilir.
-                tmp_PivotColIndex = FindEnteringValueIndex(objective, types, InclusiveTypeBits, MaxEntering);
+                tmp_PivotColIndex = FindEnteringValueIndex(objective, types, InclusiveTypeBits, tmp_basics, MaxEntering);
                 //Check the selected value. If value is zero, nothing to do.
                 if (tmp_PivotColIndex == -1)
                 {
@@ -155,10 +165,13 @@ namespace Simplex.Analysis
                 tmp_MinLeavingValue = double.MaxValue;
                 for (int i = 0; i < constarints.RowCount; i++)
                 {
+                    if (tmp_basicRows.Contains(i))
+                        continue;
+
                     if (constarints[i, tmp_PivotColIndex] != 0)
                     {
                         tmp_MinCalculateValue = RightHandValues[i, 0] / constarints[i, tmp_PivotColIndex];
-                        if(tmp_MinCalculateValue>0 && tmp_MinCalculateValue<tmp_MinLeavingValue)
+                        if(tmp_MinCalculateValue>=0 && tmp_MinCalculateValue<tmp_MinLeavingValue)
                         {
                             tmp_MinLeavingValue = tmp_MinCalculateValue;
                             tmp_PivotRowIndex = i;
@@ -173,7 +186,9 @@ namespace Simplex.Analysis
                     System.Diagnostics.Debug.WriteLine("Problem is Unbounded.", "SolveStandart");
                     break;
                 }
+                tmp_basicRows.Add(tmp_PivotRowIndex);
                 RightHandValues[tmp_PivotRowIndex, 1] = tmp_PivotColIndex;
+                tmp_basics[tmp_PivotRowIndex] = tmp_PivotColIndex;
                 System.Diagnostics.Debug.WriteLine("Pivot Row = " + tmp_PivotRowIndex, "SolveStandart");
                 //4)Calculate new Row (Rn') for selected tmp_PivotRowIndex
                 System.Diagnostics.Debug.WriteLine("**********New Row*********");
@@ -211,7 +226,7 @@ namespace Simplex.Analysis
                     RightHandValues[i, 0] = Math.Round(RightHandValues[i, 0] - tmp_pivotValue * RightHandValues[tmp_PivotRowIndex, 0], m_digitRound);
                 }
 
-                PrintMatrix(objective, constarints, RightHandValues.GetCol(0), RightHandValues.GetCol(1), RightHandValues[RightHandValues.RowCount - 1, 0], tmp_iteration);
+                PrintMatrix(objective, constarints, RightHandValues.GetCol(0), basicVariables, RightHandValues[RightHandValues.RowCount - 1, 0], tmp_iteration);
                 tmp_iteration++;
                 //break;
             }
