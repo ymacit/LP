@@ -1,6 +1,9 @@
-#LP
+# LP
 
 Lineer Programing with Simplex and Revised Simplex
+
+For detailed information about the Simplex Method, you can read the [presentation](https://ocw.ehu.eus/pluginfile.php/8167/mod_resource/content/1/2_Simplex_Slides.pdf) at the OpenCourseWare website.
+
 
 # Introduction 
 Give a short introduction of project.
